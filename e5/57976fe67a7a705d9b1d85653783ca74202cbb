@@ -1,0 +1,20 @@
+public/logo.svg
+  s_e4412a96b4497c::t_fa14ed9183dd2a 1,4-5,7-8,10-11,13-14,16-17,19-20
+  s_e4412a96b4497c::t_f98317f02558ea 6,9,12,15,18,42-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e557976fe67a7a705d9b1d85653783ca74202cbb",
+  "prompts": {},
+  "sessions": {
+    "s_e4412a96b4497c": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f431b6aa3ffe81HwPwctuvYTe6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
