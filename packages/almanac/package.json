@@ -1,0 +1,55 @@
+{
+  "name": "repo-almanac",
+  "version": "0.0.0",
+  "description": "Keep repository documentation indexed in AGENTS.md",
+  "keywords": [
+    "agents",
+    "cli",
+    "documentation",
+    "git"
+  ],
+  "homepage": "https://github.com/thebytefarm/almanac#readme",
+  "bugs": {
+    "url": "https://github.com/thebytefarm/almanac/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebytefarm/almanac.git",
+    "directory": "packages/almanac"
+  },
+  "bin": {
+    "almanac": "./dist/index.mjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "imports": {
+    "#*": "./src/*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "check-types": "tsgo --noEmit",
+    "lint": "oxlint -D curly -D no-ternary src tests tsdown.config.ts vitest.config.ts",
+    "pack:check": "npm pack --dry-run",
+    "prepack": "pnpm build",
+    "test": "vitest run",
+    "test:integration": "vitest run --project integration",
+    "test:unit": "vitest run --project unit"
+  },
+  "dependencies": {
+    "liquidjs": "^10.29.0",
+    "maltty": "1.0.0-rc.4",
+    "massaman": "^0.5.1",
+    "yaml": "^2.9.1",
+    "zod": "4.6.5"
+  },
+  "engines": {
+    "node": ">=26"
+  }
+}

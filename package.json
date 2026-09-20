@@ -1,0 +1,44 @@
+{
+  "name": "almanac-monorepo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "almanac": "node packages/almanac/dist/index.mjs",
+    "build": "turbo run build",
+    "changeset": "changeset",
+    "check-types": "turbo run check-types",
+    "docs:build": "ciderpress build",
+    "docs:check": "ciderpress check",
+    "docs:dev": "ciderpress dev",
+    "docs:serve": "ciderpress serve",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "lint": "turbo run lint",
+    "pack:check": "pnpm --filter repo-almanac pack:check",
+    "release": "pnpm build && changeset publish",
+    "test": "turbo run test",
+    "test:integration": "turbo run test:integration",
+    "test:unit": "turbo run test:unit",
+    "validate": "pnpm format:check && pnpm lint && pnpm check-types && pnpm test && pnpm build && pnpm pack:check && pnpm docs:build",
+    "version": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3",
+    "@rspress/core": "2.0.22",
+    "@types/node": "26.6.1",
+    "@typescript/native-preview": "7.0.0-dev.20260707.2",
+    "ciderpress": "1.0.0-rc.16",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsdown": "0.23.0",
+    "turbo": "2.11.2",
+    "typescript": "7.0.2",
+    "vitest": "^5.0.1"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "packageManager": "pnpm@12.3.4"
+}
