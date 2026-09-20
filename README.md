@@ -12,11 +12,11 @@
 
 ## Features
 
-- **Git-aware discovery:** Index tracked Markdown and exclude ignored files
-- **Deterministic output:** Produce stable, reviewable `AGENTS.md` updates
-- **Managed boundaries:** Preserve every line outside Almanac's markers
-- **Repository hooks:** Refresh and stage changed indexes before a commit
-- **CI enforcement:** Detect stale indexes without writing to the worktree
+- 🔍 **Git-aware discovery:** Index tracked Markdown and exclude ignored files
+- 🎯 **Deterministic output:** Produce stable, reviewable `AGENTS.md` updates
+- 🛡️ **Managed boundaries:** Preserve every line outside Almanac's markers
+- 🪝 **Repository hooks:** Refresh and stage changed indexes before a commit
+- ✅ **CI enforcement:** Detect stale indexes without writing to the worktree
 
 ## Why
 
