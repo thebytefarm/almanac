@@ -3,7 +3,7 @@
   <p><strong>A deterministic documentation index for coding agents. Keep AGENTS.md current without hand-maintaining it.</strong></p>
 
 <a href="https://github.com/thebytefarm/almanac/actions/workflows/ci.yml"><img src="https://github.com/thebytefarm/almanac/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
-<a href="https://www.npmjs.com/package/almanac-md"><img src="https://img.shields.io/npm/v/almanac-md/rc" alt="npm version" /></a>
+<a href="https://www.npmjs.com/package/almanac-md"><img src="https://img.shields.io/npm/v/almanac-md" alt="npm version" /></a>
 <a href="https://github.com/thebytefarm/almanac/blob/main/LICENSE"><img src="https://img.shields.io/github/license/thebytefarm/almanac" alt="License" /></a>
 
 <a href="docs/getting-started.md">Documentation</a> &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; <a href="https://github.com/thebytefarm/almanac/issues">Issues</a>
