@@ -1,0 +1,21 @@
+README.md
+  s_dadd8954dfd756::t_09daf6a93ef051 25-31
+  s_dadd8954dfd756::t_928e4530647163 50
+  s_dadd8954dfd756::t_aa16ced0421d41 44,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "143b9ac0ee26369b804d765315fda8964f328eab",
+  "prompts": {},
+  "sessions": {
+    "s_dadd8954dfd756": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f48bb41d4ffeFyxI1peXgn5sPi",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
