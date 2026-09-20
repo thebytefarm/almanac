@@ -1,0 +1,37 @@
+SECURITY.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 5
+.changeset/fresh-almanacs-arrive.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 2
+README.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 8
+docs/getting-started.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 15
+.changeset/pre.json
+  s_dadd8954dfd756::t_e3f0d3428cefce 1-4
+packages/almanac/README.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 8
+CONTRIBUTING.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 29
+packages/almanac/package.json
+  s_dadd8954dfd756::t_bb4bb64fec046d 2
+RELEASING.md
+  s_dadd8954dfd756::t_bb4bb64fec046d 3,19,21,25
+package.json
+  s_dadd8954dfd756::t_bb4bb64fec046d 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "69a93423d56090e65cad723c81e5ab7f85f01491",
+  "prompts": {},
+  "sessions": {
+    "s_dadd8954dfd756": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f48bb41d4ffeFyxI1peXgn5sPi",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
