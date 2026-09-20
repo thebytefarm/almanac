@@ -1,0 +1,118 @@
+packages/almanac/tests/commands/sync.test.ts
+  s_dadd8954dfd756::t_ac37c229983b82 1,10-20,22,24,26-28,30-33,35-57
+  s_dadd8954dfd756::t_5eeb2d10aae50e 58-70
+  s_dadd8954dfd756::t_3b4a45dd12618a 9,21,23,25,29,34,87-89
+packages/almanac/tests/commands/init.test.ts
+  s_dadd8954dfd756::t_3b4a45dd12618a 9,21
+  s_dadd8954dfd756::t_470cc67280e0f6 1,20
+packages/almanac/src/commands/index/index.ts
+  s_dadd8954dfd756::t_418f4c71db65fc 1-28
+docs/getting-started.md
+  s_dadd8954dfd756::t_6c24d96d6a74b6 28,32
+  s_dadd8954dfd756::t_3b4a45dd12618a 31
+packages/almanac/src/lib/index-options.ts
+  s_dadd8954dfd756::t_f111f14f9298c6 1-17
+  s_dadd8954dfd756::t_3386a246bbcfb0 18-33
+packages/almanac/README.md
+  s_dadd8954dfd756::t_6c24d96d6a74b6 21-22
+  s_dadd8954dfd756::t_3b4a45dd12618a 20,37
+  s_dadd8954dfd756::t_0a902880257fc0 18
+  s_dadd8954dfd756::t_e77ca1dc723b17 44
+  s_dadd8954dfd756::t_bf559b36fa7df4 19
+  s_dadd8954dfd756::t_576027fe382cc7 45
+packages/almanac/src/commands/init.ts
+  s_dadd8954dfd756::t_3386a246bbcfb0 4,24,26-27
+  s_dadd8954dfd756::t_c931e64496aeaf 13,21-23,25,28-29,34-41
+packages/almanac/tests/package.test.ts
+  s_dadd8954dfd756::t_58c93958a964ef 25-26
+.changeset/recursive-claude-aliases.md
+  s_dadd8954dfd756::t_ac37c229983b82 1-4
+  s_dadd8954dfd756::t_3b4a45dd12618a 5
+packages/almanac/src/commands/link.ts
+  s_dadd8954dfd756::t_c8c60bae40d14e 6,9
+  s_dadd8954dfd756::t_c931e64496aeaf 1-5,7-8,10-19
+docs/cli.md
+  s_dadd8954dfd756::t_e77ca1dc723b17 18-35,37-43
+  s_dadd8954dfd756::t_ac37c229983b82 52
+  s_dadd8954dfd756::t_3b4a45dd12618a 16,36,44,60
+  s_dadd8954dfd756::t_42efdfa3321391 17
+packages/almanac/src/commands/sync.ts
+  s_dadd8954dfd756::t_c931e64496aeaf 11,13-15,19-20
+  s_dadd8954dfd756::t_ac37c229983b82 26
+  s_dadd8954dfd756::t_3386a246bbcfb0 3,16-18
+  s_dadd8954dfd756::t_c8c60bae40d14e 10
+packages/almanac/tests/commands/check.test.ts
+  s_dadd8954dfd756::t_7d00e3ce4beec9 26-33,35-36
+  s_dadd8954dfd756::t_ac37c229983b82 1
+  s_dadd8954dfd756::t_3b4a45dd12618a 25,34
+packages/almanac/src/client.ts
+  s_dadd8954dfd756::t_9e7c2c3b4fc5f1 1,14-15,21,28-33,47-63,73-79,82-88,90-94,98,111-132,134
+README.md
+  s_dadd8954dfd756::t_e77ca1dc723b17 71,78
+  s_dadd8954dfd756::t_ab487cc7fb6e41 75-77,80,82-85
+  s_dadd8954dfd756::t_3b4a45dd12618a 47,79
+  s_dadd8954dfd756::t_6c24d96d6a74b6 81
+docs/how-it-works.md
+  s_dadd8954dfd756::t_ac37c229983b82 22
+  s_dadd8954dfd756::t_3b4a45dd12618a 20
+  s_dadd8954dfd756::t_e77ca1dc723b17 24
+  s_dadd8954dfd756::t_bb2e9c9e57b5a2 23
+packages/almanac/tests/commands/index.test.ts
+  s_dadd8954dfd756::t_58c93958a964ef 1-30,32-33
+  s_dadd8954dfd756::t_3b4a45dd12618a 31
+docs/configuration.md
+  s_dadd8954dfd756::t_e77ca1dc723b17 8-9
+packages/almanac/package.json
+  s_dadd8954dfd756::t_ac37c229983b82 18
+packages/almanac/src/commands/check.ts
+  s_dadd8954dfd756::t_c931e64496aeaf 12,21-23,27-28
+  s_dadd8954dfd756::t_3386a246bbcfb0 3,24-26
+  s_dadd8954dfd756::t_ac37c229983b82 37-40,49
+packages/almanac/src/commands/init.test.ts
+  s_dadd8954dfd756::t_3386a246bbcfb0 23-28,40-45,59,61
+packages/almanac/src/types.ts
+  s_dadd8954dfd756::t_f0e4176ba2c4d7 14-16
+  s_dadd8954dfd756::t_f111f14f9298c6 11-13,17-18
+  s_8bd3818ed70b42::t_e21b88deb6fb95 10
+packages/almanac/src/core/project.ts
+  s_dadd8954dfd756::t_3b4a45dd12618a 68-69,320-325,328,331,343-348,350-355
+  s_dadd8954dfd756::t_ac37c229983b82 11,64-67,125-127,137-139,201,302-319,326-327,329-330,332-342,349,356-367,371-376,380-402,404-408
+  s_dadd8954dfd756::t_1de54b5292c4aa 368,370,377,379
+  s_dadd8954dfd756::t_f111f14f9298c6 37-40,42-45,84-94,109-112,114-121,129-131,133-136,144-200
+  s_dadd8954dfd756::t_470cc67280e0f6 369,378
+  s_dadd8954dfd756::t_53dfc9441c512b 1-10,403
+  s_dadd8954dfd756::t_0298a84a72d3e5 202
+  s_dadd8954dfd756::t_3b3189f5d6592b 409
+packages/almanac/tests/commands/link.test.ts
+  s_dadd8954dfd756::t_3b4a45dd12618a 20,22,25
+  s_dadd8954dfd756::t_c8c60bae40d14e 1,27-39
+  s_dadd8954dfd756::t_58c93958a964ef 2-19,21,23-24,26,40-41
+CLAUDE.md
+  s_dadd8954dfd756::t_e6429fc1cde34f 1
+GEMINI.md
+  s_dadd8954dfd756::t_61804a73de3621 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "994849ebc5dff2965da7b923498fc377031eb381",
+  "prompts": {},
+  "sessions": {
+    "s_8bd3818ed70b42": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f6748e485ffeSf6lV1DvwRaqw6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    },
+    "s_dadd8954dfd756": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f48bb41d4ffeFyxI1peXgn5sPi",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
