@@ -26,7 +26,7 @@ Run commands from the repository root. Unit tests live beside source files under
 4. Run `pnpm validate`.
 5. Use a Conventional Commit title such as `fix(cli): preserve existing hook content`.
 
-Changes to `repo-almanac` need a changeset:
+Changes to `almanac-md` need a changeset:
 
 ```bash
 pnpm changeset

@@ -5,7 +5,7 @@ Almanac keeps repository documentation discoverable to coding agents through a d
 ## Install
 
 ```bash
-pnpm add -D repo-almanac
+pnpm add -D almanac-md
 pnpm exec almanac init
 ```
 

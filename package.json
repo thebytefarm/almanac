@@ -14,7 +14,7 @@
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "lint": "turbo run lint",
-    "pack:check": "pnpm --filter repo-almanac pack:check",
+    "pack:check": "pnpm --filter almanac-md pack:check",
     "release": "pnpm build && changeset publish",
     "test": "turbo run test",
     "test:integration": "turbo run test:integration",
