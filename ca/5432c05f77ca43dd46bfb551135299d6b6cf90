@@ -1,0 +1,19 @@
+.changeset/pre.json
+  s_dadd8954dfd756::t_d743466a85dbc1 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ca5432c05f77ca43dd46bfb551135299d6b6cf90",
+  "prompts": {},
+  "sessions": {
+    "s_dadd8954dfd756": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f48bb41d4ffeFyxI1peXgn5sPi",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
