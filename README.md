@@ -22,7 +22,13 @@
 
 Agents do not need another generated repository overview. They need a small, current map to decisions, conventions, runbooks, and other knowledge they cannot infer from code. Almanac builds that map from the documentation already in the repository and keeps it current on every commit.
 
-The design follows published evidence, including the [Vercel docs-index eval](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals), the [ETH Zürich AGENTS.md study](https://arxiv.org/abs/2602.11988), the [progressive-disclosure depth study](https://arxiv.org/abs/2607.17598), [Corpus2Skill](https://arxiv.org/abs/2604.14572), and the [LlamaIndex filesystem benchmark](https://www.llamaindex.ai/blog/did-filesystem-tools-kill-vector-search).
+The design follows published evidence:
+
+- [Vercel docs-index eval](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals): A compressed `AGENTS.md` index reached 100% where the no-docs baseline reached 53%.
+- [ETH Zürich AGENTS.md study](https://arxiv.org/abs/2602.11988): Generated repository overviews did not improve task success and increased inference cost by over 20%.
+- [Progressive-disclosure depth study](https://arxiv.org/abs/2607.17598): One routing layer helped across multiple documents; a second layer added no benefit and sometimes reduced accuracy.
+- [Corpus2Skill](https://arxiv.org/abs/2604.14572): Visible corpus structure improved navigation for single-domain knowledge bases with recoverable taxonomies.
+- [LlamaIndex filesystem benchmark](https://www.llamaindex.ai/blog/did-filesystem-tools-kill-vector-search): Filesystem agents beat RAG on correctness and relevance for small corpora, with RAG taking over at larger scales.
 
 ## Install
 
@@ -35,14 +41,13 @@ pnpm add -D almanac-md
 ### Initialize the index
 
 ```bash
-pnpm exec almanac init
+pnpm exec almanac init --hooks
 ```
 
-`init` adds managed markers to `AGENTS.md` and asks whether to install the optional pre-commit hook. For non-interactive setup:
+`init` adds managed markers to `AGENTS.md` and installs a pre-commit hook that invokes the repository-pinned package. To initialize without installing the package or hook:
 
 ```bash
-pnpm exec almanac init --hooks     # initialize and install the hook
-pnpm exec almanac init --no-hooks  # initialize without the hook
+pnpm dlx almanac-md init --no-hooks
 ```
 
 ### Configure document discovery
