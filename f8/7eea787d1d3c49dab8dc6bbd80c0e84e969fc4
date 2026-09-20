@@ -1,0 +1,29 @@
+packages/almanac/src/commands/check.ts
+  s_dadd8954dfd756::t_6e5fbe258928a0 4,19-21
+  s_dadd8954dfd756::t_977fd3a8230b51 2,12-14
+packages/almanac/src/commands/init.ts
+  s_dadd8954dfd756::t_977fd3a8230b51 3,8-16,22,38
+  s_dadd8954dfd756::t_6e5fbe258928a0 5,28,30-31
+packages/almanac/src/commands/index/index.ts
+  s_dadd8954dfd756::t_6e5fbe258928a0 3,16-18
+packages/almanac/src/lib/index-options.ts
+  s_dadd8954dfd756::t_977fd3a8230b51 1,4,6-19
+packages/almanac/src/commands/sync.ts
+  s_dadd8954dfd756::t_6e5fbe258928a0 3,16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f87eea787d1d3c49dab8dc6bbd80c0e84e969fc4",
+  "prompts": {},
+  "sessions": {
+    "s_dadd8954dfd756": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_f48bb41d4ffeFyxI1peXgn5sPi",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
