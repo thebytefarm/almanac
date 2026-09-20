@@ -140,7 +140,7 @@ jobs:
           path: ${{ runner.temp }}/changeset-pack
 
       - name: Publish packages
-        run: npm publish "$RUNNER_TEMP/changeset-pack/packages/"*.tgz
+        run: npm publish --provenance "$RUNNER_TEMP/changeset-pack/packages/"*.tgz
 
       - name: Push Git tag
         env:
