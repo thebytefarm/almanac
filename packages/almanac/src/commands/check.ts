@@ -1,6 +1,7 @@
 import { command } from 'maltty'
+import { z } from 'zod'
 
-import { indexOptions, readStringArray } from '#lib/index-options.js'
+import { indexOptions } from '#lib/index-options.js'
 import { unwrapCommand } from '#lib/result.js'
 
 /**
@@ -8,22 +9,16 @@ import { unwrapCommand } from '#lib/result.js'
  */
 export default command({
   description: 'Check managed docs indexes for drift without writing files',
-  options: {
-    ...indexOptions,
-    format: {
-      choices: ['text', 'json'] as const,
-      default: 'text',
-      description: 'Output format',
-      type: 'string',
-    },
-  },
+  options: indexOptions.extend({
+    format: z.enum(['text', 'json']).describe('Output format').default('text'),
+  }),
   handler: async (ctx) => {
     const checked = unwrapCommand(
       ctx,
       await ctx.almanac.check({
-        exclude: readStringArray(ctx.args.exclude),
-        include: readStringArray(ctx.args.include),
-        targets: readStringArray(ctx.args.target),
+        exclude: ctx.args.exclude,
+        include: ctx.args.include,
+        targets: ctx.args.target,
       }),
     )
     const stale = checked.filter((change) => change.changed).map((change) => change.path)
