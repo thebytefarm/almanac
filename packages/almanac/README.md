@@ -52,7 +52,7 @@ configuration offline, deterministic, serializable, and safe to inspect in CI.
 
 The schema is strict: unknown keys, absolute paths, parent traversal, duplicate target paths, empty
 include or target lists, multiline tags, identical tags, and empty templates are errors. Every field
-at the top level is optional because the schema applies the defaults from `VISION.md`.
+at the top level is optional because the schema applies Almanac's documented defaults.
 
 ```yaml
 include:

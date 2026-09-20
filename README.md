@@ -1,19 +1,69 @@
-# Almanac
+<div align="center">
+  <img src="public/logo.svg" alt="Almanac" width="90%" />
+  <p><strong>A deterministic documentation index for coding agents. Keep AGENTS.md current without hand-maintaining it.</strong></p>
 
-Almanac keeps repository documentation discoverable to coding agents through a deterministic, Git-aware index. It finds tracked Markdown files, derives short descriptions, and updates managed blocks in `AGENTS.md` without touching human-authored content.
+<a href="https://github.com/thebytefarm/almanac/actions/workflows/ci.yml"><img src="https://github.com/thebytefarm/almanac/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+<a href="https://www.npmjs.com/package/almanac-md"><img src="https://img.shields.io/npm/v/almanac-md/rc" alt="npm version" /></a>
+<a href="https://github.com/thebytefarm/almanac/blob/main/LICENSE"><img src="https://img.shields.io/github/license/thebytefarm/almanac" alt="License" /></a>
+
+<a href="docs/getting-started.md">Documentation</a> &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp; <a href="https://github.com/thebytefarm/almanac/issues">Issues</a>
+
+</div>
+
+## Features
+
+- **Git-aware discovery:** Index tracked Markdown and exclude ignored files
+- **Deterministic output:** Produce stable, reviewable `AGENTS.md` updates
+- **Managed boundaries:** Preserve every line outside Almanac's markers
+- **Repository hooks:** Refresh and stage changed indexes before a commit
+- **CI enforcement:** Detect stale indexes without writing to the worktree
+
+## Why
+
+Agents do not need another generated repository overview. They need a small, current map to decisions, conventions, runbooks, and other knowledge they cannot infer from code. Almanac builds that map from the documentation already in the repository and keeps it current on every commit.
+
+The design follows published evidence, including the [Vercel docs-index eval](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals), the [ETH Zürich AGENTS.md study](https://arxiv.org/abs/2602.11988), the [progressive-disclosure depth study](https://arxiv.org/abs/2607.17598), [Corpus2Skill](https://arxiv.org/abs/2604.14572), and the [LlamaIndex filesystem benchmark](https://www.llamaindex.ai/blog/did-filesystem-tools-kill-vector-search).
 
 ## Install
 
 ```bash
 pnpm add -D almanac-md
+```
+
+## Usage
+
+### Initialize the index
+
+```bash
 pnpm exec almanac init
 ```
 
-`init` adds the managed index and asks whether Almanac should install its pre-commit hook. The hook is optional. CI can enforce the same state without installing it:
+`init` adds managed markers to `AGENTS.md` and asks whether to install the optional pre-commit hook. For non-interactive setup:
 
 ```bash
-pnpm exec almanac check
+pnpm exec almanac init --hooks     # initialize and install the hook
+pnpm exec almanac init --no-hooks  # initialize without the hook
 ```
+
+### Configure document discovery
+
+Almanac reads `almanac.yaml`, `almanac.yml`, or `almanac.json` from the repository root. The default target is `AGENTS.md`.
+
+```yaml
+include:
+  - docs/**/*.md
+targets:
+  - AGENTS.md
+```
+
+### Keep the index current
+
+```bash
+pnpm exec almanac sync   # update and stage changed indexes
+pnpm exec almanac check  # fail when an index is stale
+```
+
+Use `check` in CI when hooks are not installed.
 
 ## Commands
 
@@ -27,25 +77,8 @@ pnpm exec almanac check
 | `almanac hooks status`  | Report whether the current Almanac hook is installed.            |
 | `almanac diff`          | Classify index changes as generated or human-authored.           |
 
-See the [getting started guide](docs/getting-started.md), [configuration reference](docs/configuration.md), and [CLI reference](docs/cli.md) for the complete contract.
-
-## Configuration
-
-Almanac reads `almanac.yaml`, `almanac.yml`, or `almanac.json` from the repository root. The default target is `AGENTS.md`.
-
-```yaml
-include:
-  - docs/**/*.md
-targets:
-  - AGENTS.md
-```
-
-The index is bounded by managed markers. Content outside those markers remains yours.
-
-## Contributing
-
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Security reports belong in a private GitHub advisory as described in [SECURITY.md](SECURITY.md).
+Read the [configuration reference](docs/configuration.md), [CLI reference](docs/cli.md), and [template guide](docs/templates.md) for the complete contract.
 
 ## License
 
-Almanac is available under the [MIT License](LICENSE).
+[MIT](LICENSE)
