@@ -1,4 +1,4 @@
-import { access, lstat, stat, symlink } from 'node:fs/promises'
+import { access, lstat, readlink, stat, symlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { invoke, setup } from '../cli.js'
 
 describe('init command', () => {
-  it('initializes targets and preserves an existing pre-commit hook', async () => {
+  it('initializes zero-config defaults, creates aliases, and preserves an existing hook', async () => {
     const fixture = await setup({
       'docs/start.md': '# Start Here\n\nRead this first.\n',
       'pnpm-lock.yaml': 'lockfileVersion: 9\n',
@@ -17,6 +17,8 @@ describe('init command', () => {
 
     expect(result.error).toBeUndefined()
     expect(await fixture.read('AGENTS.md')).toContain('docs/start.md: Read this first.')
+    expect(await readlink(join(fixture.path, 'CLAUDE.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'GEMINI.md'))).toBe('AGENTS.md')
     expect(await fixture.read('.git/hooks/pre-commit')).toBe(`#!/bin/sh
 # almanac:start
 pnpm exec almanac sync || exit $?

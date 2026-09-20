@@ -20,7 +20,12 @@ describe('init command workflow', () => {
       initialValue: false,
       message: 'Install the Almanac pre-commit hook?',
     })
-    expect(initialize).toHaveBeenCalledWith({ hooks: true })
+    expect(initialize).toHaveBeenCalledWith({
+      exclude: undefined,
+      hooks: true,
+      include: undefined,
+      targets: undefined,
+    })
   })
 
   it('uses an explicit flag without prompting', async () => {
@@ -32,7 +37,12 @@ describe('init command workflow', () => {
     await init.handler?.(ctx)
 
     expect(prompts.confirm).not.toHaveBeenCalled()
-    expect(initialize).toHaveBeenCalledWith({ hooks: false })
+    expect(initialize).toHaveBeenCalledWith({
+      exclude: undefined,
+      hooks: false,
+      include: undefined,
+      targets: undefined,
+    })
   })
 })
 
@@ -46,7 +56,9 @@ function createAlmanac(initialize: Almanac['initialize']): Almanac {
       remove: async () => ok(hookStatus),
       status: async () => ok(hookStatus),
     },
+    index: async () => ok([]),
     initialize,
+    link: async () => ok([]),
     sync: async () => ok([]),
   }
 }

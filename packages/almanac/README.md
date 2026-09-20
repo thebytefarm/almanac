@@ -15,9 +15,11 @@ The interactive setup asks whether to install Git hooks and defaults to No. Run 
 
 | Command                 | Contract                                                                                                 |
 | ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `almanac sync`          | Build every configured docs index, replace only managed blocks, and stage files Almanac changed.         |
-| `almanac check`         | Run the same analysis without writing and fail when a managed block has drifted.                         |
-| `almanac init`          | Add missing managed markers and ask whether to install the Git hook.                                     |
+| `almanac sync`          | Build indexes, maintain recursive compatibility aliases, and stage managed paths.                        |
+| `almanac index`         | Build and stage configured indexes without managing compatibility links.                                 |
+| `almanac link`          | Recursively create and stage Claude and Gemini compatibility links without indexing.                     |
+| `almanac check`         | Run the same analysis without writing and fail when a managed path has drifted.                          |
+| `almanac init`          | Add missing markers and aliases, then ask whether to install the Git hook.                               |
 | `almanac hooks install` | Idempotently add Almanac's marked section to the effective Git pre-commit hook.                          |
 | `almanac hooks remove`  | Remove only Almanac's marked section and leave the rest of the hook intact.                              |
 | `almanac hooks status`  | Report whether the effective pre-commit hook contains the current Almanac section.                       |
@@ -32,12 +34,14 @@ The implementation should be split by capability rather than by command:
 - `config`: discover and validate static configuration.
 - `documents`: discover Markdown through Git-aware file selection and derive descriptions.
 - `index`: render and compare deterministic managed blocks.
-- `instructions`: find target `AGENTS.md` files and replace full-line-delimited markers.
+- `instructions`: update target `AGENTS.md` blocks and maintain recursive agent compatibility aliases.
 - `git`: resolve repository state, ignored files, revisions, staging, and the effective hooks path.
 - `hooks`: install, remove, and inspect a marked shell fragment without owning the rest of the hook.
 - `diff`: compare instruction files after normalizing managed blocks away.
 
 Commands should remain thin adapters over these capabilities. `sync` and `check` must share the exact analysis pipeline so CI cannot disagree with the writer.
+
+Configuration files are optional. `init`, `index`, `sync`, and `check` accept repeatable `--include`, `--exclude`, and `--target` flags that override the corresponding configured or default values for one invocation. `link` needs no configuration or filters.
 
 ## Configuration
 

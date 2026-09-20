@@ -1,5 +1,14 @@
-import { lstat, mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import {
+  lstat,
+  mkdir,
+  readFile,
+  readlink,
+  rename,
+  stat,
+  symlink,
+  writeFile,
+} from 'node:fs/promises'
+import { dirname, posix } from 'node:path'
 
 import { attemptAsync, err, ok } from 'massaman/control'
 import type { Result } from 'massaman/control'
@@ -25,7 +34,15 @@ export interface TargetChange {
  * Shared target analysis and write pipeline used by sync, check, and init.
  */
 export interface Project {
+  readonly index: (options: {
+    readonly stage: boolean
+    readonly write: boolean
+  }) => Promise<Result<readonly TargetChange[]>>
   readonly initializeTargets: () => Promise<Result<readonly string[]>>
+  readonly link: (options: {
+    readonly stage: boolean
+    readonly write: boolean
+  }) => Promise<Result<readonly TargetChange[]>>
   readonly sync: (options: {
     readonly stage: boolean
     readonly write: boolean
@@ -44,6 +61,12 @@ interface InitializedTarget extends TargetChange {
   readonly output: string
 }
 
+interface ManagedAlias extends TargetChange {
+  readonly absolutePath: string
+}
+
+const compatibilityAliasNames = ['CLAUDE.md', 'GEMINI.md'] as const
+
 /**
  * Creates the project writer shared by sync, check, and init.
  *
@@ -58,6 +81,17 @@ export function createProject(options: {
   readonly renderer: IndexRenderer
 }): Project {
   return {
+    index: async (syncOptions) => {
+      const generated = await analyzeGeneratedTargets(options)
+      if (!generated.ok) {
+        return generated
+      }
+      const applied = await applyGeneratedTargets(options.git, generated.value, syncOptions)
+      if (!applied.ok) {
+        return applied
+      }
+      return ok(generated.value.map(({ changed, path }) => ({ changed, path })))
+    },
     initializeTargets: async () => {
       const initialized = await Promise.all(
         options.config.targets.map((target) => initializeTarget(options.paths, target)),
@@ -72,46 +106,98 @@ export function createProject(options: {
       }
       return ok(targets.value.map(({ path }) => path))
     },
-    sync: async (syncOptions) => {
-      const documents = await options.catalog.discover()
-      if (!documents.ok) {
-        return documents
+    link: async (syncOptions) => {
+      const aliases = await discoverManagedAliases(options.git, options.paths)
+      if (!aliases.ok) {
+        return aliases
       }
-      const analyzed = await Promise.all(
-        options.config.targets.map((target) =>
-          generateTarget({
-            documents: documents.value,
-            paths: options.paths,
-            renderer: options.renderer,
-            target,
-          }),
-        ),
-      )
-      const generated = collectResults(analyzed)
+      const applied = await applyManagedAliases(options.git, aliases.value, syncOptions)
+      if (!applied.ok) {
+        return applied
+      }
+      return ok(aliases.value.map(({ changed, path }) => ({ changed, path })))
+    },
+    sync: async (syncOptions) => {
+      const generated = await analyzeGeneratedTargets(options)
       if (!generated.ok) {
         return generated
       }
-      if (syncOptions.write) {
-        const written = await writeGeneratedTargets(
-          generated.value.filter(({ changed }) => changed),
-        )
-        if (!written.ok) {
-          return written
-        }
+      const aliases = await discoverManagedAliases(options.git, options.paths)
+      if (!aliases.ok) {
+        return aliases
       }
-
-      if (syncOptions.stage) {
-        const staged = await stageManagedTargets(
-          options.git,
-          generated.value.filter(({ changed }) => changed),
-        )
-        if (!staged.ok) {
-          return staged
-        }
+      const appliedTargets = await applyGeneratedTargets(options.git, generated.value, syncOptions)
+      if (!appliedTargets.ok) {
+        return appliedTargets
       }
-      return ok(generated.value.map(({ changed, path }) => ({ changed, path })))
+      const appliedAliases = await applyManagedAliases(options.git, aliases.value, syncOptions)
+      if (!appliedAliases.ok) {
+        return appliedAliases
+      }
+      return ok(
+        [...generated.value, ...aliases.value].map(({ changed, path }) => ({ changed, path })),
+      )
     },
   }
+}
+
+async function analyzeGeneratedTargets(options: {
+  readonly catalog: DocumentCatalog
+  readonly config: AlmanacConfig
+  readonly paths: RepoPathResolver
+  readonly renderer: IndexRenderer
+}): Promise<Result<readonly GeneratedTarget[]>> {
+  const documents = await options.catalog.discover()
+  if (!documents.ok) {
+    return documents
+  }
+  const analyzed = await Promise.all(
+    options.config.targets.map((target) =>
+      generateTarget({
+        documents: documents.value,
+        paths: options.paths,
+        renderer: options.renderer,
+        target,
+      }),
+    ),
+  )
+  return collectResults(analyzed)
+}
+
+async function applyGeneratedTargets(
+  git: GitClient,
+  targets: readonly GeneratedTarget[],
+  options: { readonly stage: boolean; readonly write: boolean },
+): Promise<Result<undefined>> {
+  const changed = targets.filter((target) => target.changed)
+  if (options.write) {
+    const written = await writeGeneratedTargets(changed)
+    if (!written.ok) {
+      return written
+    }
+  }
+  if (options.stage) {
+    return stageManagedTargets(git, changed)
+  }
+  return ok(undefined)
+}
+
+async function applyManagedAliases(
+  git: GitClient,
+  aliases: readonly ManagedAlias[],
+  options: { readonly stage: boolean; readonly write: boolean },
+): Promise<Result<undefined>> {
+  const changed = aliases.filter((alias) => alias.changed)
+  if (options.write) {
+    const linked = await writeManagedAliases(changed)
+    if (!linked.ok) {
+      return linked
+    }
+  }
+  if (options.stage) {
+    return stageManagedAliases(git, changed)
+  }
+  return ok(undefined)
 }
 
 async function initializeTarget(
@@ -211,6 +297,114 @@ async function writeGeneratedTargets(
     return written
   }
   return writeGeneratedTargets(remaining)
+}
+
+async function discoverManagedAliases(
+  git: GitClient,
+  paths: RepoPathResolver,
+): Promise<Result<readonly ManagedAlias[]>> {
+  const discovered = await git.run([
+    'ls-files',
+    '--cached',
+    '--others',
+    '--exclude-standard',
+    '-z',
+    '--',
+    ':(glob)AGENTS.md',
+    ':(glob)**/AGENTS.md',
+  ])
+  if (!discovered.ok) {
+    return discovered
+  }
+  const agentPaths = [...new Set(discovered.value.stdout.split('\0').filter(Boolean))].sort()
+  const analyzed = await Promise.all(agentPaths.map((path) => analyzeManagedAliases(paths, path)))
+  const aliases = collectResults(analyzed)
+  if (!aliases.ok) {
+    return aliases
+  }
+  return ok(aliases.value.flat())
+}
+
+async function analyzeManagedAliases(
+  paths: RepoPathResolver,
+  agentPath: string,
+): Promise<Result<readonly ManagedAlias[]>> {
+  const source = await paths.resolve(agentPath)
+  if (!source.ok) {
+    return source
+  }
+  const sourceStat = await attemptAsync(() => lstat(source.value))
+  if (!sourceStat.ok) {
+    return sourceStat
+  }
+  if (!sourceStat.value.isFile()) {
+    return err(`${agentPath}: alias source must be a regular file`)
+  }
+
+  const analyzed = await Promise.all(
+    compatibilityAliasNames.map((aliasName) => analyzeManagedAlias(paths, agentPath, aliasName)),
+  )
+  return collectResults(analyzed)
+}
+
+async function analyzeManagedAlias(
+  paths: RepoPathResolver,
+  agentPath: string,
+  aliasName: string,
+): Promise<Result<ManagedAlias>> {
+  const aliasPath = posix.join(posix.dirname(agentPath), aliasName)
+  const alias = await paths.resolve(aliasPath)
+  if (!alias.ok) {
+    return alias
+  }
+  const aliasStat = await attemptAsync(() => lstat(alias.value))
+  if (!aliasStat.ok && isMissing(aliasStat.error)) {
+    return ok({ absolutePath: alias.value, changed: true, path: aliasPath })
+  }
+  if (!aliasStat.ok) {
+    return aliasStat
+  }
+  if (!aliasStat.value.isSymbolicLink()) {
+    return err(
+      `${aliasPath}: expected a symbolic link to ${agentPath}, but an existing path would be overwritten\nFix: merge any instructions into ${agentPath}, remove ${aliasPath}, and rerun almanac sync`,
+    )
+  }
+  const target = await attemptAsync(() => readlink(alias.value))
+  if (!target.ok) {
+    return target
+  }
+  if (target.value !== 'AGENTS.md') {
+    return err(
+      `${aliasPath}: expected symbolic link target AGENTS.md, found ${JSON.stringify(target.value)}\nFix: remove ${aliasPath} and rerun almanac sync`,
+    )
+  }
+  return ok({ absolutePath: alias.value, changed: false, path: aliasPath })
+}
+
+async function writeManagedAliases(aliases: readonly ManagedAlias[]): Promise<Result<undefined>> {
+  const [alias, ...remaining] = aliases
+  if (!alias) {
+    return ok(undefined)
+  }
+  const linked = await attemptAsync(() => symlink('AGENTS.md', alias.absolutePath))
+  if (!linked.ok) {
+    return linked
+  }
+  return writeManagedAliases(remaining)
+}
+
+async function stageManagedAliases(
+  git: GitClient,
+  aliases: readonly ManagedAlias[],
+): Promise<Result<undefined>> {
+  if (aliases.length === 0) {
+    return ok(undefined)
+  }
+  const staged = await git.run(['add', '--', ...aliases.map(({ path }) => `:(literal)${path}`)])
+  if (!staged.ok) {
+    return staged
+  }
+  return ok(undefined)
 }
 
 async function stageManagedTargets(

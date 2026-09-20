@@ -1,3 +1,4 @@
+import { lstat, readlink, symlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -5,6 +6,68 @@ import { describe, expect, it } from 'vitest'
 import { invoke, setup } from '../cli.js'
 
 describe('sync command', () => {
+  it('creates and stages recursive compatibility aliases', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\n</docs-index>\n',
+      'packages/api/AGENTS.md': '# API instructions\n',
+    })
+    await fixture.commit('initial instructions')
+
+    const result = await invoke('sync')
+
+    expect(result.error).toBeUndefined()
+    expect((await lstat(join(fixture.path, 'CLAUDE.md'))).isSymbolicLink()).toBeTruthy()
+    expect(await readlink(join(fixture.path, 'CLAUDE.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'GEMINI.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'packages/api/CLAUDE.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'packages/api/GEMINI.md'))).toBe('AGENTS.md')
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe(
+      'CLAUDE.md\nGEMINI.md\npackages/api/CLAUDE.md\npackages/api/GEMINI.md',
+    )
+  })
+
+  it('leaves correct compatibility aliases unchanged', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\n</docs-index>\n',
+    })
+    await symlink('AGENTS.md', join(fixture.path, 'CLAUDE.md'))
+    await symlink('AGENTS.md', join(fixture.path, 'GEMINI.md'))
+    await fixture.commit('initial instructions')
+
+    const result = await invoke('sync')
+
+    expect(result.error).toBeUndefined()
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe('')
+  })
+
+  it('rejects conflicting Claude compatibility paths without replacing them', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\nold\n</docs-index>\n',
+      'CLAUDE.md': '# Claude-specific instructions\n',
+      'docs/guide.md': '# Guide\n\nNew guidance.\n',
+    })
+    const before = await fixture.read('AGENTS.md')
+
+    const result = await invoke('sync')
+
+    expect(result.exitCode).toBe(2)
+    expect(await fixture.read('AGENTS.md')).toBe(before)
+    expect(await fixture.read('CLAUDE.md')).toBe('# Claude-specific instructions\n')
+  })
+
+  it('rejects Claude compatibility links with a different target', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\n</docs-index>\n',
+      'OTHER.md': '# Other instructions\n',
+    })
+    await symlink('OTHER.md', join(fixture.path, 'CLAUDE.md'))
+
+    const result = await invoke('sync')
+
+    expect(result.exitCode).toBe(2)
+    expect(await readlink(join(fixture.path, 'CLAUDE.md'))).toBe('OTHER.md')
+  })
+
   it('syncs discovered docs and stages only the target', async () => {
     const fixture = await setup({
       'AGENTS.md': '# Instructions\n\n<docs-index>\n</docs-index>\n',
@@ -21,7 +84,9 @@ describe('sync command', () => {
       'docs/auth.md: Token lifecycle and refresh semantics.',
     )
     expect(await fixture.read('AGENTS.md')).not.toContain('private.md')
-    expect(await fixture.git('diff', '--cached', '--name-only')).toBe('AGENTS.md')
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe(
+      'AGENTS.md\nCLAUDE.md\nGEMINI.md',
+    )
   })
 
   it('stages managed output without capturing unstaged human edits', async () => {

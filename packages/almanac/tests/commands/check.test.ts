@@ -1,4 +1,4 @@
-import { symlink } from 'node:fs/promises'
+import { lstat, symlink } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -20,6 +20,18 @@ describe('check command', () => {
 
     expect(result.exitCode).toBe(1)
     expect(await fixture.read('AGENTS.md')).toBe(before)
+  })
+
+  it('reports missing compatibility aliases without creating them', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\n</docs-index>\n',
+    })
+
+    const result = await invoke('check', '--format', 'json')
+
+    expect(result.exitCode).toBe(1)
+    await expect(lstat(join(fixture.path, 'CLAUDE.md'))).rejects.toThrow()
+    await expect(lstat(join(fixture.path, 'GEMINI.md'))).rejects.toThrow()
   })
 
   it('rejects executable configuration files', async () => {
