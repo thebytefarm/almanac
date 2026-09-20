@@ -1,6 +1,6 @@
 # Releasing Almanac
 
-Almanac uses Changesets to version `repo-almanac`, maintain its changelog, create Git tags and GitHub releases, and publish to npm.
+Almanac uses Changesets to version `almanac-md`, maintain its changelog, create Git tags and GitHub releases, and publish to npm.
 
 ## Normal releases
 
@@ -16,13 +16,13 @@ The npm trusted publisher must use:
 
 ## First release
 
-npm requires a package to exist before its trusted publisher can be configured. The first `0.1.0` release therefore needs one manual publish:
+npm requires a package to exist before its trusted publisher can be configured. The first `0.1.0-rc.0` release therefore needs one manual publish:
 
-1. Merge the initial Changesets release pull request so `main` contains version `0.1.0` and its changelog.
+1. Merge the initial Changesets release pull request so `main` contains version `0.1.0-rc.0` and its changelog.
 2. Check out the merged `main` commit and run `pnpm validate`.
 3. Confirm npm authentication with `npm whoami`.
 4. Run `pnpm run release --otp=<current-code>`. This publishes the package and creates the local Changesets Git tag.
-5. Push the generated `repo-almanac@0.1.0` tag.
+5. Push the generated `almanac-md@0.1.0-rc.0` tag.
 6. Create the matching GitHub release from that tag.
 7. Configure the npm trusted publisher with the values above.
 8. Require two-factor authentication and disallow token-based publishing for the package.

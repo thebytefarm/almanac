@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are applied to the latest published version of `repo-almanac`.
+Security fixes are applied to the latest published version of `almanac-md`.
 
 ## Reporting a vulnerability
 

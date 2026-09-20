@@ -5,7 +5,7 @@ This package provides the `almanac` binary and the deterministic indexing engine
 ## Install
 
 ```bash
-pnpm add -D repo-almanac
+pnpm add -D almanac-md
 pnpm exec almanac init
 ```
 

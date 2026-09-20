@@ -12,7 +12,7 @@ Almanac needs Node 26 or newer and a Git repository.
 Install the CLI as a development dependency:
 
 ```bash
-pnpm add -D repo-almanac
+pnpm add -D almanac-md
 ```
 
 ## Initialize
