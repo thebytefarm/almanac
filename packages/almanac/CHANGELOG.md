@@ -1,5 +1,11 @@
 # almanac-md
 
+## 0.2.0
+
+### Minor Changes
+
+- 4a3f435: Add CLI-only index filters and targets, standalone `index` and `link` commands, and recursive `CLAUDE.md` and `GEMINI.md` compatibility links for every Git-visible `AGENTS.md`.
+
 ## 0.1.0
 
 ### Minor Changes
