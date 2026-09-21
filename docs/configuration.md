@@ -5,6 +5,8 @@ description: The complete YAML and JSON configuration contract.
 
 # Configuration
 
+Configuration files are optional. Use repeatable `--include`, `--exclude`, and `--target` flags with `init`, `index`, `sync`, or `check` for CLI-only operation. A provided flag replaces that complete field for the current invocation.
+
 Almanac supports one static configuration file at the repository root:
 
 - `almanac.yaml`

@@ -103,9 +103,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Normalize publish metadata
-        run: pnpm --filter almanac-md exec npm pkg set repository.url=https://github.com/thebytefarm/almanac.git
-
       - name: Build packages
         run: pnpm build
 

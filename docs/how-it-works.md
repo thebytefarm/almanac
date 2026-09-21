@@ -17,8 +17,11 @@ Every `sync` and `check` invocation uses the same pipeline:
 4. Sort documents by repository-relative path.
 5. Render each target as flat lines or a Liquid template.
 6. Replace only the content between that target's exact full-line tags.
+7. Ensure every Git-visible `AGENTS.md` has sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links.
 
-`check` stops there and reports drift. `sync` writes changed targets atomically and stages those targets with `git add -- <paths>`.
+`check` stops there and reports drift. `sync` writes changed targets atomically, creates missing compatibility links, and stages only the managed paths. Existing files and links that do not point to `AGENTS.md` are rejected rather than replaced.
+
+`index` runs only the index portion of this pipeline. `link` recursively reconciles only compatibility links and does not require managed markers or an Almanac config file.
 
 ## Metadata derivation
 

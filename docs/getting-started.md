@@ -25,10 +25,11 @@ pnpm exec almanac init
 
 The setup workflow asks whether to install Almanac's optional pre-commit hook. The default answer is No.
 
-`init` performs two operations:
+`init` performs three operations:
 
 1. Creates `AGENTS.md` when it does not exist, or adds the managed tags to the existing file.
-2. Generates the first document index and stages `AGENTS.md`.
+2. Recursively creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` links for every Git-visible `AGENTS.md`. Existing paths cause an error and are never replaced.
+3. Generates the first document index and stages the managed paths.
 
 Git hooks are optional. Opt in when you want every commit to refresh the index:
 

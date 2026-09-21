@@ -15,7 +15,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thebytefarm/almanac.git",
+    "url": "https://github.com/thebytefarm/almanac.git",
     "directory": "packages/almanac"
   },
   "bin": {

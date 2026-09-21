@@ -22,6 +22,8 @@ describe('published executable', () => {
 
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('Keep repository documentation indexed in AGENTS.md')
+    expect(result.stdout).toContain('index')
+    expect(result.stdout).toContain('link')
     expect(result.stdout).toContain('sync')
   })
 })

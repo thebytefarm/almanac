@@ -44,7 +44,7 @@ pnpm add -D almanac-md
 pnpm exec almanac init --hooks
 ```
 
-`init` adds managed markers to `AGENTS.md` and installs a pre-commit hook that invokes the repository-pinned package. To initialize without installing the package or hook:
+`init` adds managed markers to `AGENTS.md`, recursively creates `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links, and installs a pre-commit hook that invokes the repository-pinned package. Existing compatibility paths are never replaced. To initialize without installing the package or hook:
 
 ```bash
 pnpm dlx almanac-md init --no-hooks
@@ -68,19 +68,21 @@ pnpm exec almanac sync   # update and stage changed indexes
 pnpm exec almanac check  # fail when an index is stale
 ```
 
-Use `check` in CI when hooks are not installed.
+Use `check` in CI when hooks are not installed. Configuration is optional; indexing commands accept repeatable `--include`, `--exclude`, and `--target` overrides.
 
 ## Commands
 
-| Command                 | Purpose                                                          |
-| ----------------------- | ---------------------------------------------------------------- |
-| `almanac sync`          | Update configured indexes and stage files changed by Almanac.    |
-| `almanac check`         | Fail when a managed index is out of date without writing files.  |
-| `almanac init`          | Add missing managed markers and optionally install the Git hook. |
-| `almanac hooks install` | Add Almanac to the repository's effective pre-commit hook.       |
-| `almanac hooks remove`  | Remove Almanac's section while preserving the rest of the hook.  |
-| `almanac hooks status`  | Report whether the current Almanac hook is installed.            |
-| `almanac diff`          | Classify index changes as generated or human-authored.           |
+| Command                 | Purpose                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| `almanac sync`          | Update indexes and recursive compatibility links, then stage them.  |
+| `almanac index`         | Update and stage indexes without creating compatibility links.      |
+| `almanac link`          | Recursively create and stage agent compatibility links.             |
+| `almanac check`         | Fail when a managed index or compatibility link is out of date.     |
+| `almanac init`          | Add markers and compatibility links, then optionally install hooks. |
+| `almanac hooks install` | Add Almanac to the repository's effective pre-commit hook.          |
+| `almanac hooks remove`  | Remove Almanac's section while preserving the rest of the hook.     |
+| `almanac hooks status`  | Report whether the current Almanac hook is installed.               |
+| `almanac diff`          | Classify index changes as generated or human-authored.              |
 
 Read the [configuration reference](docs/configuration.md), [CLI reference](docs/cli.md), and [template guide](docs/templates.md) for the complete contract.
 
