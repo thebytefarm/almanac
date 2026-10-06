@@ -1,0 +1,54 @@
+docs/configuration.md
+  s_de7d1e5ea81864::t_a1f9b436738c91 27-31,34,37,64,87,90-105
+  s_de7d1e5ea81864::t_9b24673e91aacc 80-81,86
+  s_de7d1e5ea81864::t_9e964a4bf7e591 76-79,82
+  s_de7d1e5ea81864::t_fa0e049f560ab7 42,50,54,141
+packages/almanac/src/schema.ts
+  s_de7d1e5ea81864::t_55140fb410c1be 33-35,57,66,75,123
+  s_de7d1e5ea81864::t_65b3d0a4c96dc3 53-56,58-60,62-65,67-70,72-74,76-79,87,93,104,110,134,140
+  s_de7d1e5ea81864::t_3e4ea0920867cf 36-38,86,103,108,122,124-127,133
+  s_de7d1e5ea81864::t_9b24673e91aacc 106-107,109,111-113
+  s_de7d1e5ea81864::t_a1f9b436738c91 129-130,177-181
+  s_de7d1e5ea81864::t_a97f427a676be4 182-183
+packages/almanac/src/schema.test.ts
+  s_de7d1e5ea81864::t_65b3d0a4c96dc3 45
+  s_de7d1e5ea81864::t_fa0e049f560ab7 66
+  s_de7d1e5ea81864::t_9b24673e91aacc 29,31
+  s_de7d1e5ea81864::t_3e4ea0920867cf 38-39,65,85-109
+  s_de7d1e5ea81864::t_a1f9b436738c91 28,30,32-34,52-64,67-84
+  s_1e9b5b8a1dfca8::t_1981f96e85bf45 110
+packages/almanac/README.md
+  s_de7d1e5ea81864::t_fa0e049f560ab7 98-100
+  s_de7d1e5ea81864::t_9b24673e91aacc 81-82
+  s_de7d1e5ea81864::t_a1f9b436738c91 68-72,75,78,122-123
+packages/almanac/src/core/project.ts
+  s_de7d1e5ea81864::t_3e4ea0920867cf 278-281,519,524-526,531-535
+  s_de7d1e5ea81864::t_7ee0004259e7ec 536-537
+packages/almanac/tests/commands/sync.test.ts
+  s_de7d1e5ea81864::t_55140fb410c1be 207-208,211-212,217-218
+  s_de7d1e5ea81864::t_fa0e049f560ab7 204-206,209-210,213-216,219-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "358fc544de2a72c275cb5355d8f5996af02375a1",
+  "prompts": {},
+  "sessions": {
+    "s_1e9b5b8a1dfca8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f43c0e77-b9c1-40a7-bed6-c412fdab76a9",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    },
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
