@@ -1,0 +1,42 @@
+packages/almanac/src/schema.test.ts
+  s_de7d1e5ea81864::t_cfe17b388eddd6 43,70,110-120
+  s_de7d1e5ea81864::t_0c051d0001a826 121-122
+packages/almanac/src/core/render.ts
+  s_de7d1e5ea81864::t_cfe17b388eddd6 21,31
+packages/almanac/README.md
+  s_de7d1e5ea81864::t_cfe17b388eddd6 81,124-125
+packages/almanac/src/schema.ts
+  s_de7d1e5ea81864::t_cfe17b388eddd6 54,58,63,68,90,134
+  s_de7d1e5ea81864::t_b32f69a395e652 40-42,115,167-170,182-187,189-191,193-194,196-201,203-204,206-213,215-232
+  s_de7d1e5ea81864::t_47861b2aaa9250 214
+  s_de7d1e5ea81864::t_02a0b4191dd2b3 4,82,144,181,188,192,195,202,205,233
+  s_de7d1e5ea81864::t_209c1d84764580 164-166
+  s_9b1a1ea97bda30::t_25648851521c2a 171
+docs/configuration.md
+  s_de7d1e5ea81864::t_47861b2aaa9250 131-136
+  s_de7d1e5ea81864::t_cfe17b388eddd6 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86b993c9afbfc253de93692b03d9817b18e6e9c1",
+  "prompts": {},
+  "sessions": {
+    "s_9b1a1ea97bda30": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee4da3c4ffeGG7l5ClxN4fAMO",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    },
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
