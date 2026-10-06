@@ -201,6 +201,42 @@ targets:
     )
   })
 
+  it('stacks catalog, target, and region filters', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<standards-index>\nold\n</standards-index>\n',
+      'almanac.yaml': `include: docs/**/*.md
+exclude: docs/global-archive/**/*.md
+targets:
+  path: AGENTS.md
+  include: docs/team/**/*.md
+  exclude: docs/team/drafts/**/*.md
+  regions:
+    tags:
+      start: <standards-index>
+      end: </standards-index>
+    include: docs/team/standards/**/*.md
+    exclude: docs/team/standards/archive/**/*.md
+`,
+      'docs/global-archive/hidden.md': '# Global archive\n\nHidden.\n',
+      'docs/other/guide.md': '# Other\n\nOutside the target.\n',
+      'docs/team/drafts/draft.md': '# Draft\n\nExcluded by target.\n',
+      'docs/team/guide.md': '# Team\n\nOutside the region.\n',
+      'docs/team/standards/archive/old.md': '# Old\n\nExcluded by region.\n',
+      'docs/team/standards/typescript.md': '# TypeScript\n\nIncluded.\n',
+    })
+
+    const result = await invoke('sync')
+
+    expect(result.error).toBeUndefined()
+    const output = await fixture.read('AGENTS.md')
+    expect(output).toContain('docs/team/standards/typescript.md: Included.')
+    expect(output).not.toContain('Global archive')
+    expect(output).not.toContain('Other')
+    expect(output).not.toContain('Draft')
+    expect(output).not.toContain('Team')
+    expect(output).not.toContain('Old')
+  })
+
   it('rejects overlapping managed regions without changing the target', async () => {
     const fixture = await setup({
       'AGENTS.md': '<outer>\n<inner>\nold\n</inner>\n</outer>\n',

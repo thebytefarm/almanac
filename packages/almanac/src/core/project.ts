@@ -275,7 +275,10 @@ async function generateTarget(options: {
   }
   const rendered = await Promise.all(
     options.target.regions.map(async (region) => {
-      const body = await options.renderer.render(region, filterDocuments(options.documents, region))
+      const body = await options.renderer.render(
+        region,
+        filterDocuments(options.documents, options.target, region),
+      )
       if (!body.ok) {
         return body
       }
@@ -513,13 +516,23 @@ async function validateTargetPath(
 
 function filterDocuments(
   documents: readonly import('#types.js').TemplateDocument[],
+  target: AlmanacConfig['targets'][number],
   region: AlmanacConfig['targets'][number]['regions'][number],
 ): readonly import('#types.js').TemplateDocument[] {
   return documents.filter(
     ({ filePath }) =>
-      (!region.include || region.include.some((pattern) => matchesGlob(filePath, pattern))) &&
+      matchesIncludes(filePath, target.include) &&
+      matchesIncludes(filePath, region.include) &&
+      !target.exclude.some((pattern) => matchesGlob(filePath, pattern)) &&
       !region.exclude.some((pattern) => matchesGlob(filePath, pattern)),
   )
+}
+
+function matchesIncludes(filePath: string, patterns: readonly string[] | undefined): boolean {
+  if (!patterns) {
+    return true
+  }
+  return patterns.some((pattern) => matchesGlob(filePath, pattern))
 }
 
 function initializeManagedRegions(

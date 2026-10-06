@@ -25,25 +25,87 @@ describe('almanacConfigSchema', () => {
 
   it('normalizes legacy targets to one managed region', () => {
     const result = almanacConfigSchema.parse({
-      targets: [
-        {
-          format: 'flat',
-          path: 'AGENTS.md',
-          tags: { end: '</docs>', start: '<docs>' },
-        },
-      ],
+      targets: {
+        exclude: ['docs/archive/**'],
+        format: 'flat',
+        include: ['docs/**'],
+        path: 'AGENTS.md',
+        tags: { end: '</docs>', start: '<docs>' },
+      },
     })
 
     expect(result.targets[0]).toEqual({
+      exclude: ['docs/archive/**'],
+      include: ['docs/**'],
       path: 'AGENTS.md',
       regions: [
         {
           exclude: [],
           format: 'flat',
+          include: undefined,
           tags: { end: '</docs>', start: '<docs>' },
         },
       ],
     })
+  })
+
+  it('normalizes one target and one explicit region without arrays', () => {
+    const result = almanacConfigSchema.parse({
+      targets: {
+        path: 'AGENTS.md',
+        regions: {
+          include: ['docs/standards/**'],
+          tags: { end: '</standards>', start: '<standards>' },
+        },
+      },
+    })
+
+    expect(result.targets).toEqual([
+      {
+        exclude: [],
+        include: undefined,
+        path: 'AGENTS.md',
+        regions: [
+          {
+            exclude: [],
+            format: 'flat',
+            include: ['docs/standards/**'],
+            tags: { end: '</standards>', start: '<standards>' },
+          },
+        ],
+      },
+    ])
+  })
+
+  it('normalizes one scalar target without an array', () => {
+    const result = almanacConfigSchema.parse({ targets: 'AGENTS.md' })
+
+    expect(result.targets).toHaveLength(1)
+    expect(result.targets[0]?.path).toBe('AGENTS.md')
+  })
+
+  it('normalizes scalar globs at every filter level', () => {
+    const result = almanacConfigSchema.parse({
+      exclude: 'docs/archive/**',
+      include: 'docs/**',
+      targets: {
+        exclude: 'docs/drafts/**',
+        include: 'docs/standards/**',
+        path: 'AGENTS.md',
+        regions: {
+          exclude: 'docs/standards/archive/**',
+          include: 'docs/standards/typescript/**',
+          tags: { end: '</standards>', start: '<standards>' },
+        },
+      },
+    })
+
+    expect(result.exclude).toEqual(['docs/archive/**'])
+    expect(result.include).toEqual(['docs/**'])
+    expect(result.targets[0]?.exclude).toEqual(['docs/drafts/**'])
+    expect(result.targets[0]?.include).toEqual(['docs/standards/**'])
+    expect(result.targets[0]?.regions[0]?.exclude).toEqual(['docs/standards/archive/**'])
+    expect(result.targets[0]?.regions[0]?.include).toEqual(['docs/standards/typescript/**'])
   })
 
   it('rejects tag lines shared by regions in one target', () => {

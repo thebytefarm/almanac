@@ -65,22 +65,21 @@ include:
   - packages/*/docs/**/*.md
 exclude: []
 targets:
-  - path: AGENTS.md
-    tags:
-      start: <docs-index>
-      end: </docs-index>
-    format: flat
+  path: AGENTS.md
+  tags:
+    start: <docs-index>
+    end: </docs-index>
+  format: flat
 ```
 
-The normal form uses the scalar target shorthand:
+The normal form uses the scalar target shorthand without an array:
 
 ```yaml
-targets:
-  - AGENTS.md
+targets: AGENTS.md
 ```
 
-It expands to the target shown above. Expanded targets can override tags and choose either the flat
-format or a custom Liquid template:
+It expands to the target shown above. Expanded targets can filter the discovered catalog, override
+tags, and choose either the flat format or a custom Liquid template:
 
 ```yaml
 targets:
@@ -96,9 +95,9 @@ targets:
         {% endfor %}
 ```
 
-`include` and `exclude` are repository-relative glob arrays. A document must match at least one
-include glob and no exclude glob; exclude always wins. Git-ignored files remain excluded regardless
-of configuration.
+`include` and `exclude` accept one repository-relative glob or an array. Filters cascade from the
+configuration to the target to the region. Includes are ORed within a level and ANDed across levels;
+excludes accumulate and always win. Git-ignored files remain excluded regardless of configuration.
 
 A target can define multiple independently filtered and rendered regions. Almanac renders all regions
 in memory, atomically replaces the target file once, and stages the target once:
@@ -120,7 +119,8 @@ targets:
 ```
 
 Region filters narrow the top-level discovered catalog. Every marker line must be unique within its
-target, and managed regions must not overlap.
+target, and managed regions must not overlap. Both `targets` and `regions` accept one value or an
+array; arrays are only required when configuring multiple values.
 
 Liquid receives a `documents` array with this stable shape:
 

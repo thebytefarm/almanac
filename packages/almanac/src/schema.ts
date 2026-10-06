@@ -30,6 +30,12 @@ const targetPathSchema = repoPatternSchema.refine(
   'Must be a normalized repository-relative POSIX path without glob or pathspec syntax',
 )
 
+const patternsSchema = z.union([repoPatternSchema, z.array(repoPatternSchema)]).transform(toArray)
+
+const includePatternsSchema = z
+  .union([repoPatternSchema, z.array(repoPatternSchema).min(1)])
+  .transform(toArray)
+
 const formatSchema = z.union([
   z.literal('flat'),
   z.strictObject({
@@ -44,34 +50,47 @@ const tagsSchema = z
   })
   .refine(({ end, start }) => end !== start, 'Start and end tags must differ')
 
-const regionSchema = z.strictObject({
-  exclude: z.array(repoPatternSchema).default([]),
-  format: formatSchema.default('flat'),
-  include: z.array(repoPatternSchema).min(1).optional(),
-  tags: tagsSchema,
-})
+const regionSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    format: formatSchema.default('flat'),
+    include: includePatternsSchema.optional(),
+    tags: tagsSchema,
+  })
+  .transform((region) => ({ ...region, include: region.include }))
 
-const targetSchema = z.strictObject({
-  format: formatSchema.default('flat'),
-  path: targetPathSchema,
-  tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
-})
+const targetSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    format: formatSchema.default('flat'),
+    include: includePatternsSchema.optional(),
+    path: targetPathSchema,
+    tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
+  })
+  .transform((target) => ({ ...target, include: target.include }))
 
-const regionalTargetSchema = z.strictObject({
-  path: targetPathSchema,
-  regions: z.array(regionSchema).min(1),
-})
+const regionalTargetSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.optional(),
+    path: targetPathSchema,
+    regions: z.union([regionSchema, z.array(regionSchema).min(1)]).transform(toArray),
+  })
+  .transform((target) => ({ ...target, include: target.include }))
 
 const targetInputSchema = z
   .union([targetPathSchema, targetSchema, regionalTargetSchema])
   .transform((target) => {
     if (typeof target === 'string') {
       return {
+        exclude: [],
+        include: undefined,
         path: target,
         regions: [
           {
             exclude: [],
             format: 'flat' as const,
+            include: undefined,
             tags: { end: '</docs-index>', start: '<docs-index>' },
           },
         ],
@@ -81,8 +100,17 @@ const targetInputSchema = z
       return target
     }
     return {
+      exclude: target.exclude,
+      include: target.include,
       path: target.path,
-      regions: [{ exclude: [], format: target.format, tags: target.tags }],
+      regions: [
+        {
+          exclude: [],
+          format: target.format,
+          include: undefined,
+          tags: target.tags,
+        },
+      ],
     }
   })
 
@@ -91,21 +119,25 @@ const targetInputSchema = z
  */
 export const almanacConfigSchema = z
   .strictObject({
-    exclude: z.array(repoPatternSchema).default([]),
-    include: z
-      .array(repoPatternSchema)
-      .min(1)
-      .default(['docs/**/*.md', 'apps/*/docs/**/*.md', 'packages/*/docs/**/*.md']),
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.default([
+      'docs/**/*.md',
+      'apps/*/docs/**/*.md',
+      'packages/*/docs/**/*.md',
+    ]),
     targets: z
-      .array(targetInputSchema)
-      .min(1)
+      .union([targetInputSchema, z.array(targetInputSchema).min(1)])
+      .transform(toArray)
       .default([
         {
+          exclude: [],
+          include: undefined,
           path: 'AGENTS.md',
           regions: [
             {
               exclude: [],
               format: 'flat',
+              include: undefined,
               tags: { end: '</docs-index>', start: '<docs-index>' },
             },
           ],
@@ -140,6 +172,13 @@ declare module 'maltty/config' {
 
 function isSingleLine(value: string): boolean {
   return !value.includes('\n') && !value.includes('\r')
+}
+
+function toArray<T>(value: T | T[]): T[] {
+  if (Array.isArray(value)) {
+    return value
+  }
+  return [value]
 }
 
 function addDuplicateIssues(
