@@ -1,5 +1,15 @@
 # almanac-md
 
+## 0.3.0
+
+### Minor Changes
+
+- 7e96fe7: Configure recursive compatibility links with Claude and Gemini provider presets, custom sibling filenames, or an empty list to disable link management.
+
+### Patch Changes
+
+- 55b592c: Replace the npm package's internal maintainer notes with a product-facing quick-start guide.
+
 ## 0.2.0
 
 ### Minor Changes
