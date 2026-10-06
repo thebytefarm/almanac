@@ -17,7 +17,7 @@ The interactive setup asks whether to install Git hooks and defaults to No. Run 
 | ----------------------- | -------------------------------------------------------------------------------------------------------- |
 | `almanac sync`          | Build indexes, maintain recursive compatibility aliases, and stage managed paths.                        |
 | `almanac index`         | Build and stage configured indexes without managing compatibility links.                                 |
-| `almanac link`          | Recursively create and stage Claude and Gemini compatibility links without indexing.                     |
+| `almanac link`          | Recursively create and stage configured compatibility links without indexing.                            |
 | `almanac check`         | Run the same analysis without writing and fail when a managed path has drifted.                          |
 | `almanac init`          | Add missing markers and aliases, then ask whether to install the Git hook.                               |
 | `almanac hooks install` | Idempotently add Almanac's marked section to the effective Git pre-commit hook.                          |
@@ -41,7 +41,7 @@ The implementation should be split by capability rather than by command:
 
 Commands should remain thin adapters over these capabilities. `sync` and `check` must share the exact analysis pipeline so CI cannot disagree with the writer.
 
-Configuration files are optional. `init`, `index`, `sync`, and `check` accept repeatable `--include`, `--exclude`, and `--target` flags that override the corresponding configured or default values for one invocation. `link` needs no configuration or filters.
+Configuration files are optional. `init`, `index`, `sync`, and `check` accept repeatable `--include`, `--exclude`, and `--target` flags that override the corresponding configured or default values for one invocation. `link` uses `links` when configured and needs no document filters.
 
 ## Configuration
 
@@ -64,12 +64,19 @@ include:
   - apps/*/docs/**/*.md
   - packages/*/docs/**/*.md
 exclude: []
+links:
+  - claude
+  - gemini
 targets:
   path: AGENTS.md
   tags:
     start: <docs-index>
     end: </docs-index>
 ```
+
+`links` accepts one provider preset or custom sibling filename, or an array mixing both. `claude` and
+`gemini` map to `CLAUDE.md` and `GEMINI.md`; these are the defaults when `links` is omitted. Use
+`links: []` to disable compatibility link management. Removed entries are not deleted.
 
 The normal form uses the scalar target shorthand without an array:
 

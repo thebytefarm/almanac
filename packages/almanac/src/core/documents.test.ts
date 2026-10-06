@@ -11,7 +11,7 @@ if (!git.ok) {
 }
 
 const catalog = createDocumentCatalog({
-  config: { exclude: [], include: ['docs/**/*.md'], targets: [] },
+  config: { exclude: [], include: ['docs/**/*.md'], links: [], targets: [] },
   git: git.value,
   paths: createRepoPathResolver(process.cwd()),
 })

@@ -34,6 +34,20 @@ describe('check command', () => {
     await expect(lstat(join(fixture.path, 'GEMINI.md'))).rejects.toThrow()
   })
 
+  it('does not require compatibility links when they are disabled', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\n</docs-index>\n',
+      'almanac.yaml': 'links: []\n',
+    })
+
+    const result = await invoke('check')
+
+    expect(result.error).toBeUndefined()
+    expect(result.exitCode).toBeUndefined()
+    await expect(lstat(join(fixture.path, 'CLAUDE.md'))).rejects.toThrow()
+    await expect(lstat(join(fixture.path, 'GEMINI.md'))).rejects.toThrow()
+  })
+
   it('rejects executable configuration files', async () => {
     await setup({ 'almanac.config.ts': 'export default {}\n' })
 

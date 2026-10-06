@@ -23,6 +23,9 @@ include:
   - apps/*/docs/**/*.md
   - packages/*/docs/**/*.md
 exclude: []
+links:
+  - claude
+  - gemini
 targets:
   path: AGENTS.md
   tags:
@@ -57,6 +60,29 @@ exclude:
   - docs/archive/**
   - '**/README.md'
 ```
+
+## `links`
+
+One provider preset or custom sibling filename, or an array mixing both. Almanac creates each configured link beside every Git-visible `AGENTS.md`. The `claude` and `gemini` presets resolve to `CLAUDE.md` and `GEMINI.md`.
+
+```yaml
+links:
+  - claude
+  - gemini
+  - MY_AGENT.md
+```
+
+`links` defaults to `[claude, gemini]`. Use one scalar for one link or an empty array to disable compatibility links:
+
+```yaml
+links: claude
+```
+
+```yaml
+links: []
+```
+
+Custom values must be safe sibling filenames. Paths, duplicate destinations, and `AGENTS.md` itself are rejected. Almanac never deletes links or files removed from the configured set. Codex, OpenCode, Cursor, Windsurf, GitHub Copilot, Cline, Roo Code, Junie, and Amazon Q read `AGENTS.md` directly and do not need compatibility links.
 
 ## `targets`
 

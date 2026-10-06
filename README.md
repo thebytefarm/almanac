@@ -44,7 +44,7 @@ pnpm add -D almanac-md
 pnpm exec almanac init --hooks
 ```
 
-`init` adds managed markers to `AGENTS.md`, recursively creates `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links, and installs a pre-commit hook that invokes the repository-pinned package. Existing compatibility paths are never replaced. To initialize without installing the package or hook:
+`init` adds managed markers to `AGENTS.md`, recursively creates configured compatibility links, and installs a pre-commit hook that invokes the repository-pinned package. Links default to `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md`; existing paths are never replaced. To initialize without installing the package or hook:
 
 ```bash
 pnpm dlx almanac-md init --no-hooks
@@ -57,9 +57,12 @@ Almanac reads `almanac.yaml`, `almanac.yml`, or `almanac.json` from the reposito
 ```yaml
 include:
   - docs/**/*.md
+links: [claude, gemini]
 targets:
   - AGENTS.md
 ```
+
+Set `links` to one provider preset, mix presets with custom sibling filenames, or use `links: []` to disable compatibility links.
 
 A target can define multiple independently filtered `regions`. Almanac renders them together, atomically replaces the target once, and stages the file once.
 
