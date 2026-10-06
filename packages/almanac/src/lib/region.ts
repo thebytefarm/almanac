@@ -18,6 +18,45 @@ export interface Region {
   readonly replace: (source: string, body: string) => Result<string>
 }
 
+/**
+ * Rejects managed regions whose marker ranges intersect.
+ *
+ * @param filePath - Repository-relative target path for diagnostics.
+ * @param source - Complete target contents.
+ * @param regions - Configured marker pairs for the target.
+ * @returns Success when every region is present, unique, and disjoint.
+ */
+export function validateRegions(
+  filePath: string,
+  source: string,
+  regions: readonly RegionTags[],
+): Result<undefined> {
+  const lines = readLines(source)
+  const bounds = regions.map((tags) => findBounds(filePath, lines, tags))
+  const invalid = bounds.find((result) => !result.ok)
+  if (invalid && !invalid.ok) {
+    return invalid
+  }
+  const ranges = bounds.flatMap((result) => {
+    if (!result.ok) {
+      return []
+    }
+    return [result.value]
+  })
+  const overlap = ranges.find((range, index) =>
+    ranges
+      .slice(index + 1)
+      .some(
+        (candidate) =>
+          range.start.start <= candidate.end.start && candidate.start.start <= range.end.start,
+      ),
+  )
+  if (overlap) {
+    return err(`${filePath}: managed regions must not overlap`)
+  }
+  return ok(undefined)
+}
+
 interface SourceLine {
   readonly end: number
   readonly ending: string

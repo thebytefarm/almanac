@@ -15,9 +15,11 @@ Every `sync` and `check` invocation uses the same pipeline:
 2. Discover files matching `include` and reject matches from `exclude` or `.gitignore`.
 3. Derive each document's title and one-line description.
 4. Sort documents by repository-relative path.
-5. Render each target as flat lines or a Liquid template.
-6. Replace only the content between that target's exact full-line tags.
-7. Ensure every Git-visible `AGENTS.md` has sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links.
+5. Filter and render each target region as flat lines or a Liquid template.
+6. Validate that every target's exact full-line marker pairs are unique and non-overlapping.
+7. Replace every region in memory, preserving bytes outside the configured regions.
+8. Atomically rename one completed file per changed target and stage that target once.
+9. Ensure every Git-visible `AGENTS.md` has sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links.
 
 `check` stops there and reports drift. `sync` writes changed targets atomically, creates missing compatibility links, and stages only the managed paths. Existing files and links that do not point to `AGENTS.md` are rejected rather than replaced.
 
@@ -42,7 +44,7 @@ Markdown formatting is removed, whitespace is collapsed, and descriptions are bo
 
 ## Ownership boundary
 
-Humans own everything outside the configured tags. Almanac owns the complete block, including blank lines inside it.
+Humans own everything outside the configured region tags. Almanac owns each complete region, including blank lines inside it.
 
 ```markdown
 # Repository instructions
@@ -56,7 +58,7 @@ docs/auth.md: Token lifecycle and refresh semantics.
 </docs-index>
 ```
 
-Tags must each occur exactly once and on their own lines. Missing, duplicate, or reversed tags stop the command instead of risking a destructive rewrite.
+Tags must each occur exactly once and on their own lines. Missing, duplicate, reversed, nested, or crossing regions stop the command before any target is written.
 
 ## Git awareness
 
