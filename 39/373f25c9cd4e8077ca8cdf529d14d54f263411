@@ -1,0 +1,55 @@
+packages/almanac/src/schema.ts
+  s_de7d1e5ea81864::t_d04a8a63774b97 40-69,71-77,159
+  s_de7d1e5ea81864::t_f8798095344297 70
+docs/getting-started.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 31
+docs/cli.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 16,44,60
+packages/almanac/tests/commands/init.test.ts
+  s_de7d1e5ea81864::t_9414d671f029ec 44-56
+packages/almanac/src/core/project.ts
+  s_de7d1e5ea81864::t_d04a8a63774b97 113,128,321,337-339,350,365
+packages/almanac/src/core/documents.test.ts
+  s_de7d1e5ea81864::t_f26e1695b2e0a7 14
+docs/how-it-works.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 22,26
+packages/almanac/tests/commands/link.test.ts
+  s_de7d1e5ea81864::t_2a27e897765be9 45,53-54
+  s_de7d1e5ea81864::t_d04a8a63774b97 41-44,46-52,55-70
+docs/configuration.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 26-28,64-71,73-85
+  s_de7d1e5ea81864::t_2a27e897765be9 72
+  s_de7d1e5ea81864::t_4934e3c290296e 86
+README.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 47,60,65
+  s_de7d1e5ea81864::t_d27b50c4d653b2 66
+packages/almanac/src/client.ts
+  s_de7d1e5ea81864::t_5a629b19cb5fa0 126
+packages/almanac/src/schema.test.ts
+  s_de7d1e5ea81864::t_d04a8a63774b97 6-10,14-23
+  s_de7d1e5ea81864::t_32c71325c309aa 11-13
+packages/almanac/README.md
+  s_de7d1e5ea81864::t_3061dc713f47f8 20,44,67-69,77-79
+  s_de7d1e5ea81864::t_91b9c2e885e362 80
+packages/almanac/tests/commands/check.test.ts
+  s_de7d1e5ea81864::t_5a629b19cb5fa0 46
+  s_de7d1e5ea81864::t_d04a8a63774b97 37-45,47-50
+.changeset/configurable-compatibility-links.md
+  s_de7d1e5ea81864::t_d04a8a63774b97 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "39373f25c9cd4e8077ca8cdf529d14d54f263411",
+  "prompts": {},
+  "sessions": {
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
