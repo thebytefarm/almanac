@@ -8,7 +8,7 @@ import { unwrapCommand } from '#lib/result.js'
  * Reports configured targets whose managed indexes differ from rendered output.
  */
 export default command({
-  description: 'Check managed docs indexes for drift without writing files',
+  description: 'Validate configuration and check managed docs indexes for drift',
   options: indexOptions.extend({
     format: z.enum(['text', 'json']).describe('Output format').default('text'),
   }),

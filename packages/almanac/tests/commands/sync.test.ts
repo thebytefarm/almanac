@@ -136,9 +136,8 @@ targets:
     tags:
       start: <catalog>
       end: </catalog>
-    format:
-      template: |-
-        {% for document in documents %}* {{ document.title }} -> {{ document.filePath }}{% endfor %}
+    template: |-
+      {% for document in documents %}* {{ document.title }} -> {{ document.filePath }}{% endfor %}
 `,
     })
 
@@ -146,6 +145,139 @@ targets:
 
     expect(result.error).toBeUndefined()
     expect(await fixture.read('INDEX.md')).toContain('* Alpha -> knowledge/a.md')
+  })
+
+  it('filters and renders multiple regions in one atomic target update', async () => {
+    const fixture = await setup({
+      'AGENTS.md': `# Instructions
+
+<standards-index>
+old standards
+</standards-index>
+
+Human-authored rule.
+
+<docs-index>
+old docs
+</docs-index>
+`,
+      'almanac.yaml': `include:
+  - docs/**/*.md
+targets:
+  - path: AGENTS.md
+    regions:
+      - tags:
+          start: <standards-index>
+          end: </standards-index>
+        include:
+          - docs/standards/**
+        template: |-
+          Read every applicable standard before writing code.
+          {% for document in documents %}{{ document.filePath }}: {{ document.title }}{% endfor %}
+      - tags:
+          start: <docs-index>
+          end: </docs-index>
+        exclude:
+          - docs/standards/**
+`,
+      'docs/guide.md': '# Guide\n\nGeneral guidance.\n',
+      'docs/standards/typescript.md': '# TypeScript\n\nTypeScript rules.\n',
+    })
+
+    const result = await invoke('sync')
+
+    expect(result.error).toBeUndefined()
+    const output = await fixture.read('AGENTS.md')
+    expect(output).toContain('Read every applicable standard before writing code.')
+    expect(output).toContain('docs/standards/typescript.md: TypeScript')
+    expect(output).toContain('docs/guide.md: General guidance.')
+    expect(output.match(/docs\/standards\/typescript\.md/gu)).toHaveLength(1)
+    expect(output).toContain('Human-authored rule.')
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe(
+      'AGENTS.md\nCLAUDE.md\nGEMINI.md',
+    )
+  })
+
+  it('stacks catalog, target, and region filters', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<standards-index>\nold\n</standards-index>\n',
+      'almanac.yaml': `include: docs/**/*.md
+exclude: docs/global-archive/**/*.md
+targets:
+  path: AGENTS.md
+  include: docs/team/**/*.md
+  exclude: docs/team/drafts/**/*.md
+  regions:
+    tags:
+      start: <standards-index>
+      end: </standards-index>
+    include: docs/team/standards/**/*.md
+    exclude: docs/team/standards/archive/**/*.md
+`,
+      'docs/global-archive/hidden.md': '# Global archive\n\nHidden.\n',
+      'docs/other/guide.md': '# Other\n\nOutside the target.\n',
+      'docs/team/drafts/draft.md': '# Draft\n\nExcluded by target.\n',
+      'docs/team/guide.md': '# Team\n\nOutside the region.\n',
+      'docs/team/standards/archive/old.md': '# Old\n\nExcluded by region.\n',
+      'docs/team/standards/typescript.md': '# TypeScript\n\nIncluded.\n',
+    })
+
+    const result = await invoke('sync')
+
+    expect(result.error).toBeUndefined()
+    const output = await fixture.read('AGENTS.md')
+    expect(output).toContain('docs/team/standards/typescript.md: Included.')
+    expect(output).not.toContain('Global archive')
+    expect(output).not.toContain('Other')
+    expect(output).not.toContain('Draft')
+    expect(output).not.toContain('Team')
+    expect(output).not.toContain('Old')
+  })
+
+  it('rejects overlapping managed regions without changing the target', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<outer>\n<inner>\nold\n</inner>\n</outer>\n',
+      'almanac.yaml': `targets:
+  - path: AGENTS.md
+    regions:
+      - tags:
+          start: <outer>
+          end: </outer>
+      - tags:
+          start: <inner>
+          end: </inner>
+`,
+      'docs/guide.md': '# Guide\n\nNew guidance.\n',
+    })
+    const before = await fixture.read('AGENTS.md')
+
+    const result = await invoke('sync')
+
+    expect(result.exitCode).toBe(2)
+    expect(await fixture.read('AGENTS.md')).toBe(before)
+  })
+
+  it('does not write one region when another region is malformed', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '<docs-index>\nold\n</docs-index>\n<standards-index>\nold\n',
+      'almanac.yaml': `targets:
+  - path: AGENTS.md
+    regions:
+      - tags:
+          start: <docs-index>
+          end: </docs-index>
+      - tags:
+          start: <standards-index>
+          end: </standards-index>
+`,
+      'docs/guide.md': '# Guide\n\nNew guidance.\n',
+    })
+    const before = await fixture.read('AGENTS.md')
+
+    const result = await invoke('sync')
+
+    expect(result.exitCode).toBe(2)
+    expect(await fixture.read('AGENTS.md')).toBe(before)
   })
 
   it('excludes tracked documents after they become ignored', async () => {

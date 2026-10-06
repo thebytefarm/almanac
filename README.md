@@ -61,6 +61,8 @@ targets:
   - AGENTS.md
 ```
 
+A target can define multiple independently filtered `regions`. Almanac renders them together, atomically replaces the target once, and stages the file once.
+
 ### Keep the index current
 
 ```bash

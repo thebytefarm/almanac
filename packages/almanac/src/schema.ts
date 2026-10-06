@@ -1,6 +1,7 @@
 import { posix } from 'node:path'
 
 import type { ConfigType } from 'maltty/config'
+import { isArray, isPlainObject, isString } from 'massaman/predicate'
 import { z } from 'zod'
 
 const repoPatternSchema = z
@@ -30,60 +31,115 @@ const targetPathSchema = repoPatternSchema.refine(
   'Must be a normalized repository-relative POSIX path without glob or pathspec syntax',
 )
 
-const targetSchema = z.strictObject({
-  format: z
-    .union([
-      z.literal('flat'),
-      z.strictObject({
-        template: z.string().trim().min(1),
-      }),
-    ])
-    .default('flat'),
-  path: targetPathSchema,
-  tags: z
-    .strictObject({
-      end: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
-      start: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
-    })
-    .refine(({ end, start }) => end !== start, 'Start and end tags must differ')
-    .default({ end: '</docs-index>', start: '<docs-index>' }),
-})
+const patternsSchema = z.union([repoPatternSchema, z.array(repoPatternSchema)]).transform(toArray)
 
-const targetInputSchema = z.union([targetPathSchema, targetSchema]).transform((target) => {
-  if (typeof target === 'string') {
-    return {
-      format: 'flat' as const,
-      path: target,
-      tags: { end: '</docs-index>', start: '<docs-index>' },
-    }
-  }
-  return target
-})
+const includePatternsSchema = z
+  .union([repoPatternSchema, z.array(repoPatternSchema).min(1)])
+  .transform(toArray)
 
-/**
- * Validates Almanac's static project configuration and applies zero-config defaults.
- */
-export const almanacConfigSchema = z
+const templateSchema = z.string().trim().min(1)
+
+const tagsSchema = z
   .strictObject({
-    exclude: z.array(repoPatternSchema).default([]),
-    include: z
-      .array(repoPatternSchema)
-      .min(1)
-      .default(['docs/**/*.md', 'apps/*/docs/**/*.md', 'packages/*/docs/**/*.md']),
+    end: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
+    start: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
+  })
+  .refine(({ end, start }) => end !== start, 'Start and end tags must differ')
+
+const regionSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.optional(),
+    tags: tagsSchema,
+    template: templateSchema.optional(),
+  })
+  .transform((region) => ({ ...region, include: region.include, template: region.template }))
+
+const targetSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.optional(),
+    path: targetPathSchema,
+    tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
+    template: templateSchema.optional(),
+  })
+  .transform((target) => ({ ...target, include: target.include, template: target.template }))
+
+const regionalTargetSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.optional(),
+    path: targetPathSchema,
+    regions: z.union([regionSchema, z.array(regionSchema).min(1)]).transform(toArray),
+  })
+  .transform((target) => ({ ...target, include: target.include }))
+
+const targetInputSchema = z
+  .union([targetPathSchema, targetSchema, regionalTargetSchema])
+  .transform((target) => {
+    if (isString(target)) {
+      return {
+        exclude: [],
+        include: undefined,
+        path: target,
+        regions: [
+          {
+            exclude: [],
+            include: undefined,
+            tags: { end: '</docs-index>', start: '<docs-index>' },
+            template: undefined,
+          },
+        ],
+      }
+    }
+    if ('regions' in target) {
+      return target
+    }
+    return {
+      exclude: target.exclude,
+      include: target.include,
+      path: target.path,
+      regions: [
+        {
+          exclude: [],
+          include: undefined,
+          tags: target.tags,
+          template: target.template,
+        },
+      ],
+    }
+  })
+
+const normalizedConfigSchema = z
+  .strictObject({
+    exclude: patternsSchema.default([]),
+    include: includePatternsSchema.default([
+      'docs/**/*.md',
+      'apps/*/docs/**/*.md',
+      'packages/*/docs/**/*.md',
+    ]),
     targets: z
-      .array(targetInputSchema)
-      .min(1)
+      .union([targetInputSchema, z.array(targetInputSchema).min(1)])
+      .transform(toArray)
       .default([
         {
-          format: 'flat',
+          exclude: [],
+          include: undefined,
           path: 'AGENTS.md',
-          tags: { end: '</docs-index>', start: '<docs-index>' },
+          regions: [
+            {
+              exclude: [],
+              include: undefined,
+              tags: { end: '</docs-index>', start: '<docs-index>' },
+              template: undefined,
+            },
+          ],
         },
       ]),
   })
   .superRefine(({ targets }, ctx) => {
     const validTargets = targets.flatMap(({ path }, index) => {
-      if (typeof path !== 'string') {
+      if (!isString(path)) {
         return []
       }
       return [{ index, path }]
@@ -96,7 +152,20 @@ export const almanacConfigSchema = z
       return first?.index !== index
     })
     addDuplicateIssues(duplicates, ctx)
+    targets.forEach((target, targetIndex) => {
+      if (target.regions) {
+        addDuplicateTagIssues(target.regions, targetIndex, ctx)
+      }
+    })
   })
+
+/**
+ * Validates Almanac's static project configuration and applies zero-config defaults.
+ */
+export const almanacConfigSchema = z
+  .unknown()
+  .superRefine(addRemovedFormatIssues)
+  .pipe(normalizedConfigSchema)
 
 declare module 'maltty/config' {
   interface ConfigRegistry extends ConfigType<typeof almanacConfigSchema> {}
@@ -104,6 +173,66 @@ declare module 'maltty/config' {
 
 function isSingleLine(value: string): boolean {
   return !value.includes('\n') && !value.includes('\r')
+}
+
+function toArray<T>(value: T | T[]): T[] {
+  if (isArray(value)) {
+    return value
+  }
+  return [value]
+}
+
+function addRemovedFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
+  if (!isPlainObject(value)) {
+    return
+  }
+  const configuredTargets = value.targets
+  const targetArray = isArray(configuredTargets)
+  const targets = toUnknownArray(configuredTargets)
+  targets.forEach((target, targetIndex) => {
+    if (!isPlainObject(target)) {
+      return
+    }
+    const targetPath = getItemPath(['targets'], targetArray, targetIndex)
+    if ('format' in target) {
+      addRemovedFormatIssue(targetPath, ctx)
+    }
+
+    const configuredRegions = target.regions
+    const regionArray = isArray(configuredRegions)
+    const regions = toUnknownArray(configuredRegions)
+    regions.forEach((region, regionIndex) => {
+      if (!isPlainObject(region)) {
+        return
+      }
+      const regionPath = getItemPath([...targetPath, 'regions'], regionArray, regionIndex)
+      if ('format' in region) {
+        addRemovedFormatIssue(regionPath, ctx)
+      }
+    })
+  })
+}
+
+function addRemovedFormatIssue(path: PropertyKey[], ctx: z.RefinementCtx): void {
+  ctx.addIssue({
+    code: 'custom',
+    message: 'Remove format; set template directly only to override the built-in renderer',
+    path: [...path, 'format'],
+  })
+}
+
+function getItemPath(path: PropertyKey[], isArray: boolean, index: number): PropertyKey[] {
+  if (!isArray) {
+    return path
+  }
+  return [...path, index]
+}
+
+function toUnknownArray(value: unknown): unknown[] {
+  if (isArray(value)) {
+    return value
+  }
+  return [value]
 }
 
 function addDuplicateIssues(
@@ -116,8 +245,32 @@ function addDuplicateIssues(
   }
   ctx.addIssue({
     code: 'custom',
-    message: `Duplicate target path: ${duplicate.path}`,
+    message: `Duplicate target path: ${duplicate.path}. Combine its managed blocks under one target using regions`,
     path: ['targets', duplicate.index, 'path'],
   })
   addDuplicateIssues(remaining, ctx)
+}
+
+function addDuplicateTagIssues(
+  regions: readonly { readonly tags: { readonly end: string; readonly start: string } }[],
+  targetIndex: number,
+  ctx: z.RefinementCtx,
+): void {
+  const seen = new Map<string, number>()
+  const tagSides = ['start', 'end'] as const
+  regions.forEach((region, regionIndex) => {
+    tagSides.forEach((side) => {
+      const tag = region.tags[side]
+      const owner = seen.get(tag)
+      if (owner !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Managed region tag conflicts with region ${owner + 1}: ${tag}`,
+          path: ['targets', targetIndex, 'regions', regionIndex, 'tags', side],
+        })
+      } else {
+        seen.set(tag, regionIndex)
+      }
+    })
+  })
 }

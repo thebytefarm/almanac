@@ -5,20 +5,20 @@ import type { Result } from 'massaman/control'
 import type { AlmanacConfig } from '#types.js'
 import type { TemplateDocument } from '#types.js'
 
-type Target = AlmanacConfig['targets'][number]
+type ManagedRegion = AlmanacConfig['targets'][number]['regions'][number]
 
 /**
  * Renders discovered documents into one configured target body.
  */
 export interface IndexRenderer {
   readonly render: (
-    target: Target,
+    region: ManagedRegion,
     documents: readonly TemplateDocument[],
   ) => Promise<Result<string>>
 }
 
 /**
- * Creates a deterministic flat and Liquid index renderer.
+ * Creates deterministic built-in and Liquid index renderers.
  *
  * @returns A renderer with strict Liquid variables and filters.
  */
@@ -26,9 +26,9 @@ export function createIndexRenderer(): IndexRenderer {
   const liquid = new Liquid({ strictFilters: true, strictVariables: true })
 
   return {
-    render: async (target, documents) => {
-      const format = target.format
-      if (format === 'flat') {
+    render: async (region, documents) => {
+      const template = region.template
+      if (!template) {
         return ok(
           documents
             .map(
@@ -39,9 +39,7 @@ export function createIndexRenderer(): IndexRenderer {
         )
       }
 
-      const rendered = await attemptAsync(() =>
-        liquid.parseAndRender(format.template, { documents }),
-      )
+      const rendered = await attemptAsync(() => liquid.parseAndRender(template, { documents }))
       if (!rendered.ok) {
         return rendered
       }

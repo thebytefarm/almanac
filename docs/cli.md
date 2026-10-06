@@ -13,7 +13,7 @@ Run commands from a Git repository. The global `--cwd <path>` option changes the
 almanac sync
 ```
 
-Discovers documents, regenerates every configured target, and recursively creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links. Changed managed paths are staged. Missing or malformed tags and conflicting alias paths are errors.
+Discovers documents, regenerates every configured region, atomically replaces each changed target once, and recursively creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links. Changed managed paths are staged. Missing, malformed, conflicting, or overlapping regions and conflicting alias paths are errors.
 
 `init`, `sync`, `index`, and `check` accept repeatable CLI overrides:
 
@@ -49,7 +49,7 @@ Recursively discovers every Git-visible `AGENTS.md` and creates sibling `CLAUDE.
 almanac check [--format text|json]
 ```
 
-Runs the same analysis as `sync` without writing or staging. Exits `1` when any target or compatibility link is stale and `0` when every managed path is current.
+Validates the complete configuration, then runs the same analysis as `sync` without writing or staging. Invalid configuration exits `2`, stale targets or compatibility links exit `1`, and a current repository exits `0`. Validation errors identify the failing configuration path and explain conflicts such as duplicate targets or region tags.
 
 ## `init`
 
@@ -89,12 +89,12 @@ Reports `installed`, `not-installed`, or `malformed` with the effective hook pat
 almanac diff --base <revision> [--head HEAD] [--format text|json]
 ```
 
-Reads each configured target from both Git revisions, removes the managed block, and classifies changes:
+Reads each configured target from both Git revisions, normalizes every managed region, and classifies changes:
 
 | Classification   | Meaning                                 | Exit |
 | ---------------- | --------------------------------------- | ---- |
 | `none`           | Target files are byte-for-byte equal    | `0`  |
-| `generated-only` | Only managed block content changed      | `0`  |
-| `human-authored` | Content outside a managed block changed | `1`  |
+| `generated-only` | Only managed region content changed     | `0`  |
+| `human-authored` | Content outside managed regions changed | `1`  |
 
 Unreadable revisions and invalid tags are operational errors.
