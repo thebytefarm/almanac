@@ -1,0 +1,19 @@
+.github/workflows/release.yml
+  s_de7d1e5ea81864::t_106e1e06df5d59 137-142,147-151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "69b29c73e0e2f596d5cfd90c7d0cda2e9b0c1865",
+  "prompts": {},
+  "sessions": {
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
