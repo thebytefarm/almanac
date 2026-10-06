@@ -28,7 +28,7 @@ The setup workflow asks whether to install Almanac's optional pre-commit hook. T
 `init` performs three operations:
 
 1. Creates `AGENTS.md` when it does not exist, or adds the managed tags to the existing file.
-2. Recursively creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` links for every Git-visible `AGENTS.md`. Existing paths cause an error and are never replaced.
+2. Recursively creates configured sibling links for every Git-visible `AGENTS.md`. The defaults are `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md`. Existing paths cause an error and are never replaced.
 3. Generates the first document index and stages the managed paths.
 
 Git hooks are optional. Opt in when you want every commit to refresh the index:

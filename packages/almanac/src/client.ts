@@ -123,6 +123,7 @@ function resolveConfig(config: AlmanacConfig, overrides: IndexOverrides): Result
   const resolved = almanacConfigSchema.safeParse({
     exclude: overrides.exclude ?? config.exclude,
     include: overrides.include ?? config.include,
+    links: config.links,
     targets: overrides.targets ?? config.targets,
   })
   if (!resolved.success) {

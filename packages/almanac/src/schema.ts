@@ -37,6 +37,44 @@ const includePatternsSchema = z
   .union([repoPatternSchema, z.array(repoPatternSchema).min(1)])
   .transform(toArray)
 
+const providerLinkSchema = z
+  .enum(['claude', 'gemini'])
+  .transform((provider) => ({ claude: 'CLAUDE.md', gemini: 'GEMINI.md' })[provider])
+
+const customLinkSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine(
+    (value) =>
+      !value.includes('/') &&
+      !value.includes('\\') &&
+      value !== '.' &&
+      value !== '..' &&
+      value.toLocaleLowerCase('en-US') !== 'agents.md' &&
+      ![...value].some((character) => {
+        const code = character.charCodeAt(0)
+        return code < 32 || code === 127
+      }),
+    'Must be a safe sibling filename other than AGENTS.md',
+  )
+
+const linkSchema = z.union([providerLinkSchema, customLinkSchema])
+
+const linksSchema = z
+  .union([linkSchema, z.array(linkSchema)])
+  .transform(toArray)
+  .superRefine((links, ctx) => {
+    links.forEach((link, index) => {
+      const first = links.findIndex(
+        (candidate) => candidate.toLocaleLowerCase('en-US') === link.toLocaleLowerCase('en-US'),
+      )
+      if (first !== index) {
+        ctx.addIssue({ code: 'custom', message: `Duplicate link: ${link}`, path: [index] })
+      }
+    })
+  })
+
 const templateSchema = z.string().trim().min(1)
 
 const tagsSchema = z
@@ -118,6 +156,7 @@ const normalizedConfigSchema = z
       'apps/*/docs/**/*.md',
       'packages/*/docs/**/*.md',
     ]),
+    links: linksSchema.default(['CLAUDE.md', 'GEMINI.md']),
     targets: z
       .union([targetInputSchema, z.array(targetInputSchema).min(1)])
       .transform(toArray)

@@ -38,4 +38,34 @@ describe('link command', () => {
     expect(await fixture.read('GEMINI.md')).toBe('# Gemini-specific instructions\n')
     await expect(lstat(join(fixture.path, 'CLAUDE.md'))).rejects.toThrow()
   })
+
+  it('creates configured provider and custom links recursively', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '# Root instructions\n',
+      'almanac.yaml': 'links: [claude, MY_AGENT.md]\n',
+      'packages/api/AGENTS.md': '# API instructions\n',
+    })
+
+    const result = await invoke('link')
+
+    expect(result.error).toBeUndefined()
+    expect(await readlink(join(fixture.path, 'CLAUDE.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'MY_AGENT.md'))).toBe('AGENTS.md')
+    expect(await readlink(join(fixture.path, 'packages/api/MY_AGENT.md'))).toBe('AGENTS.md')
+    await expect(lstat(join(fixture.path, 'GEMINI.md'))).rejects.toThrow()
+  })
+
+  it('disables link management without deleting existing paths', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '# Shared instructions\n',
+      'GEMINI.md': '# User-owned Gemini instructions\n',
+      'almanac.yaml': 'links: []\n',
+    })
+
+    const result = await invoke('link')
+
+    expect(result.error).toBeUndefined()
+    expect(await fixture.read('GEMINI.md')).toBe('# User-owned Gemini instructions\n')
+    await expect(lstat(join(fixture.path, 'CLAUDE.md'))).rejects.toThrow()
+  })
 })

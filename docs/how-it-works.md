@@ -19,11 +19,11 @@ Every `sync` and `check` invocation uses the same pipeline:
 6. Validate that every target's exact full-line marker pairs are unique and non-overlapping.
 7. Replace every region in memory, preserving bytes outside the configured regions.
 8. Atomically rename one completed file per changed target and stage that target once.
-9. Ensure every Git-visible `AGENTS.md` has sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links.
+9. Ensure every Git-visible `AGENTS.md` has its configured sibling compatibility links. The default is `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md`.
 
 `check` stops there and reports drift. `sync` writes changed targets atomically, creates missing compatibility links, and stages only the managed paths. Existing files and links that do not point to `AGENTS.md` are rejected rather than replaced.
 
-`index` runs only the index portion of this pipeline. `link` recursively reconciles only compatibility links and does not require managed markers or an Almanac config file.
+`index` runs only the index portion of this pipeline. `link` recursively reconciles only compatibility links and does not require managed markers. Configuration is optional; `links: []` disables link management.
 
 ## Metadata derivation
 

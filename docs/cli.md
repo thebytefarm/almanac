@@ -13,7 +13,7 @@ Run commands from a Git repository. The global `--cwd <path>` option changes the
 almanac sync
 ```
 
-Discovers documents, regenerates every configured region, atomically replaces each changed target once, and recursively creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` compatibility links. Changed managed paths are staged. Missing, malformed, conflicting, or overlapping regions and conflicting alias paths are errors.
+Discovers documents, regenerates every configured region, atomically replaces each changed target once, and recursively creates configured compatibility links beside every Git-visible `AGENTS.md`. Links default to `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md`. Changed managed paths are staged. Missing, malformed, conflicting, or overlapping regions and conflicting link paths are errors.
 
 `init`, `sync`, `index`, and `check` accept repeatable CLI overrides:
 
@@ -41,7 +41,7 @@ Regenerates and stages index targets without creating or validating agent compat
 almanac link
 ```
 
-Recursively discovers every Git-visible `AGENTS.md` and creates sibling `CLAUDE.md -> AGENTS.md` and `GEMINI.md -> AGENTS.md` links. It needs no configuration and does not modify index blocks. Existing conflicting paths stop the command with remediation instructions.
+Recursively discovers every Git-visible `AGENTS.md` and creates its configured sibling links. It does not modify index blocks, and configuration is optional. Existing conflicting paths stop the command with remediation instructions. Set `links: []` to disable link management.
 
 ## `check`
 
@@ -57,7 +57,7 @@ Validates the complete configuration, then runs the same analysis as `sync` with
 almanac init [--hooks|--no-hooks]
 ```
 
-Creates missing targets, adds empty managed blocks, generates the index, recursively links `CLAUDE.md` and `GEMINI.md` to each Git-visible `AGENTS.md`, and stages changed paths. Interactive runs ask whether to install the optional pre-commit hook and default to No. Pass `--hooks` or `--no-hooks` to answer without prompting.
+Creates missing targets, adds empty managed blocks, generates the index, recursively creates configured links beside each Git-visible `AGENTS.md`, and stages changed paths. Interactive runs ask whether to install the optional pre-commit hook and default to No. Pass `--hooks` or `--no-hooks` to answer without prompting.
 
 ## `hooks install`
 
