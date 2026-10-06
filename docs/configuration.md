@@ -71,21 +71,21 @@ targets:
       end: </sdk-docs>
 ```
 
-| Field     | Required | Default                          | Description                                         |
-| --------- | -------- | -------------------------------- | --------------------------------------------------- |
-| `path`    | yes      | none                             | Repository-relative instruction target              |
-| `include` | no       | all                              | Globs that select from the discovered catalog       |
-| `exclude` | no       | `[]`                             | Globs removed from this target's selected documents |
-| `tags`    | no       | `<docs-index>` / `</docs-index>` | Exact full-line managed-region delimiters           |
-| `format`  | no       | built-in renderer                | Object containing a Liquid `template` override      |
+| Field      | Required | Default                          | Description                                         |
+| ---------- | -------- | -------------------------------- | --------------------------------------------------- |
+| `path`     | yes      | none                             | Repository-relative instruction target              |
+| `include`  | no       | all                              | Globs that select from the discovered catalog       |
+| `exclude`  | no       | `[]`                             | Globs removed from this target's selected documents |
+| `tags`     | no       | `<docs-index>` / `</docs-index>` | Exact full-line managed-region delimiters           |
+| `template` | no       | built-in renderer                | Liquid template override                            |
 
 Tags must be non-empty, single-line, and different from each other.
 
-`targets` accepts a scalar, one expanded target object, or an array. Use an array only for multiple output files. A target without `regions` is a flattened single region, so `include`, `exclude`, `tags`, and `format` apply directly to it.
+`targets` accepts a scalar, one expanded target object, or an array. Use an array only for multiple output files. A target without `regions` is a flattened single region, so `include`, `exclude`, `tags`, and `template` apply directly to it.
 
 ## `regions`
 
-A target can own one region object or an array of independently rendered regions. Almanac discovers the top-level document catalog once, narrows it with each region's `include` and `exclude` filters, renders every region, and atomically replaces the target file once. Omit `regions` entirely when the target's own `tags` and `format` describe the only region.
+A target can own one region object or an array of independently rendered regions. Almanac discovers the top-level document catalog once, narrows it with each region's `include` and `exclude` filters, renders every region, and atomically replaces the target file once. Omit `regions` entirely when the target's own `tags` and `template` describe the only region.
 
 One explicit region does not need an array:
 
@@ -114,12 +114,11 @@ targets:
           end: </standards-index>
         include:
           - docs/standards/**
-        format:
-          template: |-
-            Read every applicable standard before writing code.
-            {% for document in documents %}
-            {{ document.filePath }}: {{ document.title | default: document.fileName }}
-            {% endfor %}
+        template: |-
+          Read every applicable standard before writing code.
+          {% for document in documents %}
+          {{ document.filePath }}: {{ document.title | default: document.fileName }}
+          {% endfor %}
 
       - tags:
           start: <docs-index>
@@ -128,12 +127,12 @@ targets:
           - docs/standards/**
 ```
 
-| Field     | Required | Default  | Description                                             |
-| --------- | -------- | -------- | ------------------------------------------------------- |
-| `tags`    | yes      | none     | Exact full-line delimiters for this region              |
-| `include` | no       | all      | Globs that select from the top-level discovered catalog |
-| `exclude` | no       | `[]`     | Globs removed from this region after its include filter |
-| `format`  | no       | built-in | Object containing a Liquid `template` override          |
+| Field      | Required | Default  | Description                                             |
+| ---------- | -------- | -------- | ------------------------------------------------------- |
+| `tags`     | yes      | none     | Exact full-line delimiters for this region              |
+| `include`  | no       | all      | Globs that select from the top-level discovered catalog |
+| `exclude`  | no       | `[]`     | Globs removed from this region after its include filter |
+| `template` | no       | built-in | Liquid template override                                |
 
 Filters cascade from configuration to target to region. Includes are ORed within one level and ANDed across levels; excludes accumulate and always win. Every target and region filter is optional, and each accepts one glob or an array. Lower levels only narrow the top-level discovered catalog; they do not discover additional files. Tag lines must be unique across a target's regions. Nested, crossing, duplicate, missing, or reversed markers are rejected before Almanac writes or stages the target.
 

@@ -37,9 +37,7 @@ const includePatternsSchema = z
   .union([repoPatternSchema, z.array(repoPatternSchema).min(1)])
   .transform(toArray)
 
-const formatSchema = z.strictObject({
-  template: z.string().trim().min(1),
-})
+const templateSchema = z.string().trim().min(1)
 
 const tagsSchema = z
   .strictObject({
@@ -51,21 +49,21 @@ const tagsSchema = z
 const regionSchema = z
   .strictObject({
     exclude: patternsSchema.default([]),
-    format: formatSchema.optional(),
     include: includePatternsSchema.optional(),
     tags: tagsSchema,
+    template: templateSchema.optional(),
   })
-  .transform((region) => ({ ...region, format: region.format, include: region.include }))
+  .transform((region) => ({ ...region, include: region.include, template: region.template }))
 
 const targetSchema = z
   .strictObject({
     exclude: patternsSchema.default([]),
-    format: formatSchema.optional(),
     include: includePatternsSchema.optional(),
     path: targetPathSchema,
     tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
+    template: templateSchema.optional(),
   })
-  .transform((target) => ({ ...target, format: target.format, include: target.include }))
+  .transform((target) => ({ ...target, include: target.include, template: target.template }))
 
 const regionalTargetSchema = z
   .strictObject({
@@ -87,9 +85,9 @@ const targetInputSchema = z
         regions: [
           {
             exclude: [],
-            format: undefined,
             include: undefined,
             tags: { end: '</docs-index>', start: '<docs-index>' },
+            template: undefined,
           },
         ],
       }
@@ -104,9 +102,9 @@ const targetInputSchema = z
       regions: [
         {
           exclude: [],
-          format: target.format,
           include: undefined,
           tags: target.tags,
+          template: target.template,
         },
       ],
     }
@@ -131,9 +129,9 @@ const normalizedConfigSchema = z
           regions: [
             {
               exclude: [],
-              format: undefined,
               include: undefined,
               tags: { end: '</docs-index>', start: '<docs-index>' },
+              template: undefined,
             },
           ],
         },
@@ -166,7 +164,7 @@ const normalizedConfigSchema = z
  */
 export const almanacConfigSchema = z
   .unknown()
-  .superRefine(addFlatFormatIssues)
+  .superRefine(addRemovedFormatIssues)
   .pipe(normalizedConfigSchema)
 
 declare module 'maltty/config' {
@@ -184,7 +182,7 @@ function toArray<T>(value: T | T[]): T[] {
   return [value]
 }
 
-function addFlatFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
+function addRemovedFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
   if (!isPlainObject(value)) {
     return
   }
@@ -196,7 +194,9 @@ function addFlatFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
       return
     }
     const targetPath = getItemPath(['targets'], targetArray, targetIndex)
-    addFlatFormatIssue(target.format, targetPath, ctx)
+    if ('format' in target) {
+      addRemovedFormatIssue(targetPath, ctx)
+    }
 
     const configuredRegions = target.regions
     const regionArray = isArray(configuredRegions)
@@ -206,18 +206,17 @@ function addFlatFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
         return
       }
       const regionPath = getItemPath([...targetPath, 'regions'], regionArray, regionIndex)
-      addFlatFormatIssue(region.format, regionPath, ctx)
+      if ('format' in region) {
+        addRemovedFormatIssue(regionPath, ctx)
+      }
     })
   })
 }
 
-function addFlatFormatIssue(value: unknown, path: PropertyKey[], ctx: z.RefinementCtx): void {
-  if (value !== 'flat') {
-    return
-  }
+function addRemovedFormatIssue(path: PropertyKey[], ctx: z.RefinementCtx): void {
   ctx.addIssue({
     code: 'custom',
-    message: 'Remove format: flat to use the built-in renderer',
+    message: 'Remove format; set template directly only to override the built-in renderer',
     path: [...path, 'format'],
   })
 }

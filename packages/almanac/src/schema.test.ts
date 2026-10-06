@@ -40,9 +40,9 @@ describe('almanacConfigSchema', () => {
       regions: [
         {
           exclude: [],
-          format: undefined,
           include: undefined,
           tags: { end: '</docs>', start: '<docs>' },
+          template: undefined,
         },
       ],
     })
@@ -67,9 +67,9 @@ describe('almanacConfigSchema', () => {
         regions: [
           {
             exclude: [],
-            format: undefined,
             include: ['docs/standards/**'],
             tags: { end: '</standards>', start: '<standards>' },
+            template: undefined,
           },
         ],
       },
@@ -107,17 +107,25 @@ describe('almanacConfigSchema', () => {
     expect(result.targets[0]?.regions[0]?.include).toEqual(['docs/standards/typescript/**'])
   })
 
-  it('rejects format flat with removal guidance', () => {
+  it('rejects the removed format field with migration guidance', () => {
     const result = almanacConfigSchema.safeParse({
-      targets: { format: 'flat', path: 'AGENTS.md' },
+      targets: { format: { template: 'old shape' }, path: 'AGENTS.md' },
     })
 
     expect(result.success).toBeFalsy()
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe(
-        'Remove format: flat to use the built-in renderer',
+        'Remove format; set template directly only to override the built-in renderer',
       )
     }
+  })
+
+  it('normalizes a flattened template override', () => {
+    const result = almanacConfigSchema.parse({
+      targets: { path: 'AGENTS.md', template: '{{ documents.size }} documents' },
+    })
+
+    expect(result.targets[0]?.regions[0]?.template).toBe('{{ documents.size }} documents')
   })
 
   it('rejects tag lines shared by regions in one target', () => {

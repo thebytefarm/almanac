@@ -27,8 +27,8 @@ export function createIndexRenderer(): IndexRenderer {
 
   return {
     render: async (region, documents) => {
-      const format = region.format
-      if (!format) {
+      const template = region.template
+      if (!template) {
         return ok(
           documents
             .map(
@@ -39,9 +39,7 @@ export function createIndexRenderer(): IndexRenderer {
         )
       }
 
-      const rendered = await attemptAsync(() =>
-        liquid.parseAndRender(format.template, { documents }),
-      )
+      const rendered = await attemptAsync(() => liquid.parseAndRender(template, { documents }))
       if (!rendered.ok) {
         return rendered
       }

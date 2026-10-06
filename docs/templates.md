@@ -10,12 +10,11 @@ Use a Liquid template when the flat `path: description` format does not fit an i
 ```yaml
 targets:
   - path: AGENTS.md
-    format:
-      template: |-
-        [Documentation]
-        {% for document in documents %}
-        - {{ document.filePath }}{% if document.description %}: {{ document.description }}{% endif %}
-        {% endfor %}
+    template: |-
+      [Documentation]
+      {% for document in documents %}
+      - {{ document.filePath }}{% if document.description %}: {{ document.description }}{% endif %}
+      {% endfor %}
 ```
 
 The rendered template is placed inside the target's configured region tags. Almanac trims whitespace at the outer edge but preserves the template's internal layout.

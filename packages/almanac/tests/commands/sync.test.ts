@@ -136,9 +136,8 @@ targets:
     tags:
       start: <catalog>
       end: </catalog>
-    format:
-      template: |-
-        {% for document in documents %}* {{ document.title }} -> {{ document.filePath }}{% endfor %}
+    template: |-
+      {% for document in documents %}* {{ document.title }} -> {{ document.filePath }}{% endfor %}
 `,
     })
 
@@ -172,10 +171,9 @@ targets:
           end: </standards-index>
         include:
           - docs/standards/**
-        format:
-          template: |-
-            Read every applicable standard before writing code.
-            {% for document in documents %}{{ document.filePath }}: {{ document.title }}{% endfor %}
+        template: |-
+          Read every applicable standard before writing code.
+          {% for document in documents %}{{ document.filePath }}: {{ document.title }}{% endfor %}
       - tags:
           start: <docs-index>
           end: </docs-index>
