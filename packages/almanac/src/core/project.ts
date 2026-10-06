@@ -8,13 +8,14 @@ import {
   symlink,
   writeFile,
 } from 'node:fs/promises'
-import { dirname, posix } from 'node:path'
+import { dirname, matchesGlob, posix } from 'node:path'
 
 import { attemptAsync, err, ok } from 'massaman/control'
 import type { Result } from 'massaman/control'
 
 import type { GitClient } from '#adapters/git.js'
-import { createRegion } from '#lib/region.js'
+import { createRegion, validateRegions } from '#lib/region.js'
+import type { RegionTags } from '#lib/region.js'
 import type { RepoPathResolver } from '#lib/repo-path.js'
 import { collectResults } from '#lib/result.js'
 import type { AlmanacConfig } from '#types.js'
@@ -51,9 +52,13 @@ export interface Project {
 
 interface GeneratedTarget extends TargetChange {
   readonly absolutePath: string
-  readonly body: string
   readonly output: string
-  readonly tags: { readonly end: string; readonly start: string }
+  readonly regions: readonly GeneratedRegion[]
+}
+
+interface GeneratedRegion {
+  readonly body: string
+  readonly tags: RegionTags
 }
 
 interface InitializedTarget extends TargetChange {
@@ -216,8 +221,11 @@ async function initializeTarget(
   if (!source.ok) {
     return source
   }
-  const block = createRegion({ filePath: target.path, tags: target.tags })
-  const output = block.initialize(source.value)
+  const output = initializeManagedRegions(
+    target.path,
+    source.value,
+    target.regions.map(({ tags }) => tags),
+  )
   if (!output.ok) {
     return output
   }
@@ -265,23 +273,30 @@ async function generateTarget(options: {
   if (!source.ok) {
     return source
   }
-  const body = await options.renderer.render(options.target, options.documents)
-  if (!body.ok) {
-    return body
+  const rendered = await Promise.all(
+    options.target.regions.map(async (region) => {
+      const body = await options.renderer.render(region, filterDocuments(options.documents, region))
+      if (!body.ok) {
+        return body
+      }
+      return ok({ body: body.value, tags: region.tags })
+    }),
+  )
+  const regions = collectResults(rendered)
+  if (!regions.ok) {
+    return regions
   }
-  const block = createRegion({ filePath: options.target.path, tags: options.target.tags })
-  const output = block.replace(source.value, body.value)
+  const output = replaceManagedRegions(options.target.path, source.value, regions.value)
   if (!output.ok) {
     return output
   }
   const changed = output.value !== source.value
   return ok({
     absolutePath: path.value,
-    body: body.value,
     changed,
     output: output.value,
     path: options.target.path,
-    tags: options.target.tags,
+    regions: regions.value,
   })
 }
 
@@ -448,12 +463,15 @@ async function stageManagedTarget(
     return indexed
   }
 
-  const block = createRegion({ filePath: target.path, tags: target.tags })
-  const initialized = block.initialize(indexed.value.stdout)
+  const initialized = initializeManagedRegions(
+    target.path,
+    indexed.value.stdout,
+    target.regions.map(({ tags }) => tags),
+  )
   if (!initialized.ok) {
     return initialized
   }
-  const contents = block.replace(initialized.value, target.body)
+  const contents = replaceManagedRegions(target.path, initialized.value, target.regions)
   if (!contents.ok) {
     return contents
   }
@@ -491,6 +509,86 @@ async function validateTargetPath(
     return err(`${configuredPath}: target must not be a symbolic link`)
   }
   return ok(undefined)
+}
+
+function filterDocuments(
+  documents: readonly import('#types.js').TemplateDocument[],
+  region: AlmanacConfig['targets'][number]['regions'][number],
+): readonly import('#types.js').TemplateDocument[] {
+  return documents.filter(
+    ({ filePath }) =>
+      (!region.include || region.include.some((pattern) => matchesGlob(filePath, pattern))) &&
+      !region.exclude.some((pattern) => matchesGlob(filePath, pattern)),
+  )
+}
+
+function initializeManagedRegions(
+  filePath: string,
+  source: string,
+  tags: readonly RegionTags[],
+): Result<string> {
+  const initialized = initializeNextRegion(filePath, source, tags)
+  if (!initialized.ok) {
+    return initialized
+  }
+  const validated = validateRegions(filePath, initialized.value, tags)
+  if (!validated.ok) {
+    return validated
+  }
+  return initialized
+}
+
+function initializeNextRegion(
+  filePath: string,
+  source: string,
+  tags: readonly RegionTags[],
+): Result<string> {
+  const [current, ...remaining] = tags
+  if (!current) {
+    return ok(source)
+  }
+  const initialized = createRegion({ filePath, tags: current }).initialize(source)
+  if (!initialized.ok) {
+    return initialized
+  }
+  return initializeNextRegion(filePath, initialized.value, remaining)
+}
+
+function replaceManagedRegions(
+  filePath: string,
+  source: string,
+  regions: readonly GeneratedRegion[],
+): Result<string> {
+  const tags = regions.map((region) => region.tags)
+  const validSource = validateRegions(filePath, source, tags)
+  if (!validSource.ok) {
+    return validSource
+  }
+  const replaced = replaceNextRegion(filePath, source, regions)
+  if (!replaced.ok) {
+    return replaced
+  }
+  const validOutput = validateRegions(filePath, replaced.value, tags)
+  if (!validOutput.ok) {
+    return validOutput
+  }
+  return replaced
+}
+
+function replaceNextRegion(
+  filePath: string,
+  source: string,
+  regions: readonly GeneratedRegion[],
+): Result<string> {
+  const [current, ...remaining] = regions
+  if (!current) {
+    return ok(source)
+  }
+  const replaced = createRegion({ filePath, tags: current.tags }).replace(source, current.body)
+  if (!replaced.ok) {
+    return replaced
+  }
+  return replaceNextRegion(filePath, replaced.value, remaining)
 }
 
 async function writeAtomic(path: string, contents: string): Promise<Result<undefined>> {

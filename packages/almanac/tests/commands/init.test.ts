@@ -55,6 +55,32 @@ echo existing
     expect(await fixture.git('show', ':AGENTS.md')).toContain('# Existing rules')
   })
 
+  it('initializes every configured region in one target', async () => {
+    const fixture = await setup({
+      'AGENTS.md': '# Existing rules\n',
+      'almanac.yaml': `targets:
+  - path: AGENTS.md
+    regions:
+      - tags:
+          start: <standards-index>
+          end: </standards-index>
+      - tags:
+          start: <docs-index>
+          end: </docs-index>
+`,
+      'docs/start.md': '# Start Here\n\nRead this first.\n',
+    })
+
+    const result = await invoke('init', '--no-hooks')
+
+    expect(result.error).toBeUndefined()
+    const output = await fixture.read('AGENTS.md')
+    expect(output).toContain('<standards-index>')
+    expect(output).toContain('</standards-index>')
+    expect(output).toContain('<docs-index>')
+    expect(output).toContain('</docs-index>')
+  })
+
   it('rejects target symlinks without replacing them', async () => {
     const fixture = await setup({
       'docs/start.md': '# Start Here\n\nRead this first.\n',

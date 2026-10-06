@@ -5,14 +5,14 @@ import type { Result } from 'massaman/control'
 import type { AlmanacConfig } from '#types.js'
 import type { TemplateDocument } from '#types.js'
 
-type Target = AlmanacConfig['targets'][number]
+type ManagedRegion = AlmanacConfig['targets'][number]['regions'][number]
 
 /**
  * Renders discovered documents into one configured target body.
  */
 export interface IndexRenderer {
   readonly render: (
-    target: Target,
+    region: ManagedRegion,
     documents: readonly TemplateDocument[],
   ) => Promise<Result<string>>
 }
@@ -26,8 +26,8 @@ export function createIndexRenderer(): IndexRenderer {
   const liquid = new Liquid({ strictFilters: true, strictVariables: true })
 
   return {
-    render: async (target, documents) => {
-      const format = target.format
+    render: async (region, documents) => {
+      const format = region.format
       if (format === 'flat') {
         return ok(
           documents

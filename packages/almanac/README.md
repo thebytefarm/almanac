@@ -55,8 +55,8 @@ Use one file at the repository root. YAML and JSON are the public contract becau
 configuration offline, deterministic, serializable, and safe to inspect in CI.
 
 The schema is strict: unknown keys, absolute paths, parent traversal, duplicate target paths, empty
-include or target lists, multiline tags, identical tags, and empty templates are errors. Every field
-at the top level is optional because the schema applies Almanac's documented defaults.
+include or target lists, conflicting or overlapping region tags, and empty templates are errors.
+Every field at the top level is optional because the schema applies Almanac's documented defaults.
 
 ```yaml
 include:
@@ -99,6 +99,28 @@ targets:
 `include` and `exclude` are repository-relative glob arrays. A document must match at least one
 include glob and no exclude glob; exclude always wins. Git-ignored files remain excluded regardless
 of configuration.
+
+A target can define multiple independently filtered and rendered regions. Almanac renders all regions
+in memory, atomically replaces the target file once, and stages the target once:
+
+```yaml
+targets:
+  - path: AGENTS.md
+    regions:
+      - tags:
+          start: <standards-index>
+          end: </standards-index>
+        include:
+          - docs/standards/**
+      - tags:
+          start: <docs-index>
+          end: </docs-index>
+        exclude:
+          - docs/standards/**
+```
+
+Region filters narrow the top-level discovered catalog. Every marker line must be unique within its
+target, and managed regions must not overlap.
 
 Liquid receives a `documents` array with this stable shape:
 
@@ -145,8 +167,8 @@ Hooks are opt-in. Pass `almanac init --hooks` during initialization or run `alma
 
 1. Load each configured instruction target at both revisions.
 2. Validate managed markers at both revisions.
-3. Replace the managed block with a stable sentinel in both versions.
-4. Compare the remaining human-owned content and managed-block position.
+3. Replace every managed region with a stable sentinel in both versions.
+4. Compare the remaining human-owned content and managed-region positions.
 5. Emit one record per target and a repository-level classification.
 
 The command exits `0` for `none` and `generated-only`, and `1` for `human-authored`. Invalid markers, unreadable revisions, and Git failures are operational errors and should use a distinct exit code.

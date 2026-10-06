@@ -30,35 +30,61 @@ const targetPathSchema = repoPatternSchema.refine(
   'Must be a normalized repository-relative POSIX path without glob or pathspec syntax',
 )
 
-const targetSchema = z.strictObject({
-  format: z
-    .union([
-      z.literal('flat'),
-      z.strictObject({
-        template: z.string().trim().min(1),
-      }),
-    ])
-    .default('flat'),
-  path: targetPathSchema,
-  tags: z
-    .strictObject({
-      end: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
-      start: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
-    })
-    .refine(({ end, start }) => end !== start, 'Start and end tags must differ')
-    .default({ end: '</docs-index>', start: '<docs-index>' }),
+const formatSchema = z.union([
+  z.literal('flat'),
+  z.strictObject({
+    template: z.string().trim().min(1),
+  }),
+])
+
+const tagsSchema = z
+  .strictObject({
+    end: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
+    start: z.string().trim().min(1).refine(isSingleLine, 'Must be a single line'),
+  })
+  .refine(({ end, start }) => end !== start, 'Start and end tags must differ')
+
+const regionSchema = z.strictObject({
+  exclude: z.array(repoPatternSchema).default([]),
+  format: formatSchema.default('flat'),
+  include: z.array(repoPatternSchema).min(1).optional(),
+  tags: tagsSchema,
 })
 
-const targetInputSchema = z.union([targetPathSchema, targetSchema]).transform((target) => {
-  if (typeof target === 'string') {
-    return {
-      format: 'flat' as const,
-      path: target,
-      tags: { end: '</docs-index>', start: '<docs-index>' },
-    }
-  }
-  return target
+const targetSchema = z.strictObject({
+  format: formatSchema.default('flat'),
+  path: targetPathSchema,
+  tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
 })
+
+const regionalTargetSchema = z.strictObject({
+  path: targetPathSchema,
+  regions: z.array(regionSchema).min(1),
+})
+
+const targetInputSchema = z
+  .union([targetPathSchema, targetSchema, regionalTargetSchema])
+  .transform((target) => {
+    if (typeof target === 'string') {
+      return {
+        path: target,
+        regions: [
+          {
+            exclude: [],
+            format: 'flat' as const,
+            tags: { end: '</docs-index>', start: '<docs-index>' },
+          },
+        ],
+      }
+    }
+    if ('regions' in target) {
+      return target
+    }
+    return {
+      path: target.path,
+      regions: [{ exclude: [], format: target.format, tags: target.tags }],
+    }
+  })
 
 /**
  * Validates Almanac's static project configuration and applies zero-config defaults.
@@ -75,9 +101,14 @@ export const almanacConfigSchema = z
       .min(1)
       .default([
         {
-          format: 'flat',
           path: 'AGENTS.md',
-          tags: { end: '</docs-index>', start: '<docs-index>' },
+          regions: [
+            {
+              exclude: [],
+              format: 'flat',
+              tags: { end: '</docs-index>', start: '<docs-index>' },
+            },
+          ],
         },
       ]),
   })
@@ -96,6 +127,11 @@ export const almanacConfigSchema = z
       return first?.index !== index
     })
     addDuplicateIssues(duplicates, ctx)
+    targets.forEach((target, targetIndex) => {
+      if (target.regions) {
+        addDuplicateTagIssues(target.regions, targetIndex, ctx)
+      }
+    })
   })
 
 declare module 'maltty/config' {
@@ -116,8 +152,32 @@ function addDuplicateIssues(
   }
   ctx.addIssue({
     code: 'custom',
-    message: `Duplicate target path: ${duplicate.path}`,
+    message: `Duplicate target path: ${duplicate.path}. Combine its managed blocks under one target using regions`,
     path: ['targets', duplicate.index, 'path'],
   })
   addDuplicateIssues(remaining, ctx)
+}
+
+function addDuplicateTagIssues(
+  regions: readonly { readonly tags: { readonly end: string; readonly start: string } }[],
+  targetIndex: number,
+  ctx: z.RefinementCtx,
+): void {
+  const seen = new Map<string, number>()
+  const tagSides = ['start', 'end'] as const
+  regions.forEach((region, regionIndex) => {
+    tagSides.forEach((side) => {
+      const tag = region.tags[side]
+      const owner = seen.get(tag)
+      if (owner !== undefined) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Managed region tag conflicts with region ${owner + 1}: ${tag}`,
+          path: ['targets', targetIndex, 'regions', regionIndex, 'tags', side],
+        })
+      } else {
+        seen.set(tag, regionIndex)
+      }
+    })
+  })
 }

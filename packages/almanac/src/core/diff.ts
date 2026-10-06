@@ -2,7 +2,8 @@ import { ok } from 'massaman/control'
 import type { Result } from 'massaman/control'
 
 import type { GitClient } from '#adapters/git.js'
-import { createRegion } from '#lib/region.js'
+import { createRegion, validateRegions } from '#lib/region.js'
+import type { RegionTags } from '#lib/region.js'
 import { collectResults } from '#lib/result.js'
 import type { AlmanacConfig } from '#types.js'
 
@@ -67,7 +68,12 @@ async function classifyTarget(
   if (!after.ok) {
     return after
   }
-  const classification = classifyContents(target.path, before.value, after.value, target.tags)
+  const classification = classifyContents(
+    target.path,
+    before.value,
+    after.value,
+    target.regions.map(({ tags }) => tags),
+  )
   if (!classification.ok) {
     return classification
   }
@@ -78,17 +84,16 @@ function classifyContents(
   filePath: string,
   before: string,
   after: string,
-  tags: { readonly end: string; readonly start: string },
+  regions: readonly RegionTags[],
 ): Result<DiffClassification> {
   if (before === after) {
     return ok('none')
   }
-  const block = createRegion({ filePath, tags })
-  const beforeHuman = replaceManagedBody(block, before)
+  const beforeHuman = replaceManagedBodies(filePath, before, regions)
   if (!beforeHuman.ok) {
     return beforeHuman
   }
-  const afterHuman = replaceManagedBody(block, after)
+  const afterHuman = replaceManagedBodies(filePath, after, regions)
   if (!afterHuman.ok) {
     return afterHuman
   }
@@ -98,11 +103,32 @@ function classifyContents(
   return ok('human-authored')
 }
 
-function replaceManagedBody(
-  block: ReturnType<typeof createRegion>,
+function replaceManagedBodies(
+  filePath: string,
   source: string,
+  regions: readonly RegionTags[],
 ): Result<string> {
-  return block.replace(source, '__ALMANAC_MANAGED_BLOCK__')
+  const valid = validateRegions(filePath, source, regions)
+  if (!valid.ok) {
+    return valid
+  }
+  return replaceNextManagedBody(filePath, source, regions)
+}
+
+function replaceNextManagedBody(
+  filePath: string,
+  source: string,
+  regions: readonly RegionTags[],
+): Result<string> {
+  const [tags, ...remaining] = regions
+  if (!tags) {
+    return ok(source)
+  }
+  const replaced = createRegion({ filePath, tags }).replace(source, '__ALMANAC_MANAGED_REGION__')
+  if (!replaced.ok) {
+    return replaced
+  }
+  return replaceNextManagedBody(filePath, replaced.value, remaining)
 }
 
 function classifyTargets(targets: DiffResult['targets']): DiffClassification {
