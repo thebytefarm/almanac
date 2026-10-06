@@ -69,7 +69,6 @@ targets:
   tags:
     start: <docs-index>
     end: </docs-index>
-  format: flat
 ```
 
 The normal form uses the scalar target shorthand without an array:
@@ -121,6 +120,10 @@ targets:
 Region filters narrow the top-level discovered catalog. Every marker line must be unique within its
 target, and managed regions must not overlap. Both `targets` and `regions` accept one value or an
 array; arrays are only required when configuring multiple values.
+
+`format` is optional and defaults to `flat`. Only set it when supplying a custom Liquid template.
+Run `almanac check` to validate configuration and output without changing the repository. Invalid
+configuration exits `2`, stale output exits `1`, and current output exits `0`.
 
 Liquid receives a `documents` array with this stable shape:
 

@@ -28,7 +28,6 @@ targets:
   tags:
     start: <docs-index>
     end: </docs-index>
-  format: flat
 ```
 
 The common case uses scalar shorthand with no arrays or region wrapper:
@@ -70,7 +69,6 @@ targets:
     tags:
       start: <sdk-docs>
       end: </sdk-docs>
-    format: flat
 ```
 
 | Field     | Required | Default                          | Description                                         |
@@ -128,7 +126,6 @@ targets:
           end: </docs-index>
         exclude:
           - docs/standards/**
-        format: flat
 ```
 
 | Field     | Required | Default | Description                                               |
@@ -142,4 +139,4 @@ Filters cascade from configuration to target to region. Includes are ORed within
 
 ## Validation
 
-Configuration loading is eager. A malformed config fails before command handlers touch the repository. This includes conflicting target paths and region tags. Almanac uses maltty's config middleware for discovery, parsing, defaults, validation, caching, and typed command context.
+Configuration loading is eager. A malformed config fails before command handlers touch the repository. This includes conflicting target paths and region tags. Run `almanac check` to validate configuration and detect generated-output drift without writing or staging files. Invalid configuration exits `2`; valid configuration with stale output exits `1`; current output exits `0`. Almanac uses maltty's config middleware for discovery, parsing, defaults, validation, caching, and typed command context.

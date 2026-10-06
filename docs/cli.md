@@ -49,7 +49,7 @@ Recursively discovers every Git-visible `AGENTS.md` and creates sibling `CLAUDE.
 almanac check [--format text|json]
 ```
 
-Runs the same analysis as `sync` without writing or staging. Exits `1` when any target or compatibility link is stale and `0` when every managed path is current.
+Validates the complete configuration, then runs the same analysis as `sync` without writing or staging. Invalid configuration exits `2`, stale targets or compatibility links exit `1`, and a current repository exits `0`. Validation errors identify the failing configuration path and explain conflicts such as duplicate targets or region tags.
 
 ## `init`
 
