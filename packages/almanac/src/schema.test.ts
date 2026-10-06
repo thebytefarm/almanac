@@ -27,7 +27,6 @@ describe('almanacConfigSchema', () => {
     const result = almanacConfigSchema.parse({
       targets: {
         exclude: ['docs/archive/**'],
-        format: 'flat',
         include: ['docs/**'],
         path: 'AGENTS.md',
         tags: { end: '</docs>', start: '<docs>' },
@@ -41,7 +40,7 @@ describe('almanacConfigSchema', () => {
       regions: [
         {
           exclude: [],
-          format: 'flat',
+          format: undefined,
           include: undefined,
           tags: { end: '</docs>', start: '<docs>' },
         },
@@ -68,7 +67,7 @@ describe('almanacConfigSchema', () => {
         regions: [
           {
             exclude: [],
-            format: 'flat',
+            format: undefined,
             include: ['docs/standards/**'],
             tags: { end: '</standards>', start: '<standards>' },
           },
@@ -106,6 +105,19 @@ describe('almanacConfigSchema', () => {
     expect(result.targets[0]?.include).toEqual(['docs/standards/**'])
     expect(result.targets[0]?.regions[0]?.exclude).toEqual(['docs/standards/archive/**'])
     expect(result.targets[0]?.regions[0]?.include).toEqual(['docs/standards/typescript/**'])
+  })
+
+  it('rejects format flat with removal guidance', () => {
+    const result = almanacConfigSchema.safeParse({
+      targets: { format: 'flat', path: 'AGENTS.md' },
+    })
+
+    expect(result.success).toBeFalsy()
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        'Remove format: flat to use the built-in renderer',
+      )
+    }
   })
 
   it('rejects tag lines shared by regions in one target', () => {

@@ -1,6 +1,7 @@
 import { posix } from 'node:path'
 
 import type { ConfigType } from 'maltty/config'
+import { isArray, isPlainObject, isString } from 'massaman/predicate'
 import { z } from 'zod'
 
 const repoPatternSchema = z
@@ -36,12 +37,9 @@ const includePatternsSchema = z
   .union([repoPatternSchema, z.array(repoPatternSchema).min(1)])
   .transform(toArray)
 
-const formatSchema = z.union([
-  z.literal('flat'),
-  z.strictObject({
-    template: z.string().trim().min(1),
-  }),
-])
+const formatSchema = z.strictObject({
+  template: z.string().trim().min(1),
+})
 
 const tagsSchema = z
   .strictObject({
@@ -53,21 +51,21 @@ const tagsSchema = z
 const regionSchema = z
   .strictObject({
     exclude: patternsSchema.default([]),
-    format: formatSchema.default('flat'),
+    format: formatSchema.optional(),
     include: includePatternsSchema.optional(),
     tags: tagsSchema,
   })
-  .transform((region) => ({ ...region, include: region.include }))
+  .transform((region) => ({ ...region, format: region.format, include: region.include }))
 
 const targetSchema = z
   .strictObject({
     exclude: patternsSchema.default([]),
-    format: formatSchema.default('flat'),
+    format: formatSchema.optional(),
     include: includePatternsSchema.optional(),
     path: targetPathSchema,
     tags: tagsSchema.default({ end: '</docs-index>', start: '<docs-index>' }),
   })
-  .transform((target) => ({ ...target, include: target.include }))
+  .transform((target) => ({ ...target, format: target.format, include: target.include }))
 
 const regionalTargetSchema = z
   .strictObject({
@@ -81,7 +79,7 @@ const regionalTargetSchema = z
 const targetInputSchema = z
   .union([targetPathSchema, targetSchema, regionalTargetSchema])
   .transform((target) => {
-    if (typeof target === 'string') {
+    if (isString(target)) {
       return {
         exclude: [],
         include: undefined,
@@ -89,7 +87,7 @@ const targetInputSchema = z
         regions: [
           {
             exclude: [],
-            format: 'flat' as const,
+            format: undefined,
             include: undefined,
             tags: { end: '</docs-index>', start: '<docs-index>' },
           },
@@ -114,10 +112,7 @@ const targetInputSchema = z
     }
   })
 
-/**
- * Validates Almanac's static project configuration and applies zero-config defaults.
- */
-export const almanacConfigSchema = z
+const normalizedConfigSchema = z
   .strictObject({
     exclude: patternsSchema.default([]),
     include: includePatternsSchema.default([
@@ -136,7 +131,7 @@ export const almanacConfigSchema = z
           regions: [
             {
               exclude: [],
-              format: 'flat',
+              format: undefined,
               include: undefined,
               tags: { end: '</docs-index>', start: '<docs-index>' },
             },
@@ -146,7 +141,7 @@ export const almanacConfigSchema = z
   })
   .superRefine(({ targets }, ctx) => {
     const validTargets = targets.flatMap(({ path }, index) => {
-      if (typeof path !== 'string') {
+      if (!isString(path)) {
         return []
       }
       return [{ index, path }]
@@ -166,6 +161,14 @@ export const almanacConfigSchema = z
     })
   })
 
+/**
+ * Validates Almanac's static project configuration and applies zero-config defaults.
+ */
+export const almanacConfigSchema = z
+  .unknown()
+  .superRefine(addFlatFormatIssues)
+  .pipe(normalizedConfigSchema)
+
 declare module 'maltty/config' {
   interface ConfigRegistry extends ConfigType<typeof almanacConfigSchema> {}
 }
@@ -175,7 +178,59 @@ function isSingleLine(value: string): boolean {
 }
 
 function toArray<T>(value: T | T[]): T[] {
-  if (Array.isArray(value)) {
+  if (isArray(value)) {
+    return value
+  }
+  return [value]
+}
+
+function addFlatFormatIssues(value: unknown, ctx: z.RefinementCtx): void {
+  if (!isPlainObject(value)) {
+    return
+  }
+  const configuredTargets = value.targets
+  const targetArray = isArray(configuredTargets)
+  const targets = toUnknownArray(configuredTargets)
+  targets.forEach((target, targetIndex) => {
+    if (!isPlainObject(target)) {
+      return
+    }
+    const targetPath = getItemPath(['targets'], targetArray, targetIndex)
+    addFlatFormatIssue(target.format, targetPath, ctx)
+
+    const configuredRegions = target.regions
+    const regionArray = isArray(configuredRegions)
+    const regions = toUnknownArray(configuredRegions)
+    regions.forEach((region, regionIndex) => {
+      if (!isPlainObject(region)) {
+        return
+      }
+      const regionPath = getItemPath([...targetPath, 'regions'], regionArray, regionIndex)
+      addFlatFormatIssue(region.format, regionPath, ctx)
+    })
+  })
+}
+
+function addFlatFormatIssue(value: unknown, path: PropertyKey[], ctx: z.RefinementCtx): void {
+  if (value !== 'flat') {
+    return
+  }
+  ctx.addIssue({
+    code: 'custom',
+    message: 'Remove format: flat to use the built-in renderer',
+    path: [...path, 'format'],
+  })
+}
+
+function getItemPath(path: PropertyKey[], isArray: boolean, index: number): PropertyKey[] {
+  if (!isArray) {
+    return path
+  }
+  return [...path, index]
+}
+
+function toUnknownArray(value: unknown): unknown[] {
+  if (isArray(value)) {
     return value
   }
   return [value]

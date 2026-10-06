@@ -18,7 +18,7 @@ export interface IndexRenderer {
 }
 
 /**
- * Creates a deterministic flat and Liquid index renderer.
+ * Creates deterministic built-in and Liquid index renderers.
  *
  * @returns A renderer with strict Liquid variables and filters.
  */
@@ -28,7 +28,7 @@ export function createIndexRenderer(): IndexRenderer {
   return {
     render: async (region, documents) => {
       const format = region.format
-      if (format === 'flat') {
+      if (!format) {
         return ok(
           documents
             .map(

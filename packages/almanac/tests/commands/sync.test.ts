@@ -181,7 +181,6 @@ targets:
           end: </docs-index>
         exclude:
           - docs/standards/**
-        format: flat
 `,
       'docs/guide.md': '# Guide\n\nGeneral guidance.\n',
       'docs/standards/typescript.md': '# TypeScript\n\nTypeScript rules.\n',

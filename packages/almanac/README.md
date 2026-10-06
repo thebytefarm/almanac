@@ -78,7 +78,7 @@ targets: AGENTS.md
 ```
 
 It expands to the target shown above. Expanded targets can filter the discovered catalog, override
-tags, and choose either the flat format or a custom Liquid template:
+tags, and provide a custom Liquid template:
 
 ```yaml
 targets:
@@ -121,7 +121,8 @@ Region filters narrow the top-level discovered catalog. Every marker line must b
 target, and managed regions must not overlap. Both `targets` and `regions` accept one value or an
 array; arrays are only required when configuring multiple values.
 
-`format` is optional and defaults to `flat`. Only set it when supplying a custom Liquid template.
+`format` is only a custom rendering override. Omit it to use Almanac's built-in renderer; the only
+valid value is an object containing a Liquid `template`.
 Run `almanac check` to validate configuration and output without changing the repository. Invalid
 configuration exits `2`, stale output exits `1`, and current output exits `0`.
 

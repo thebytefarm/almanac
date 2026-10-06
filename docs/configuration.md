@@ -77,7 +77,7 @@ targets:
 | `include` | no       | all                              | Globs that select from the discovered catalog       |
 | `exclude` | no       | `[]`                             | Globs removed from this target's selected documents |
 | `tags`    | no       | `<docs-index>` / `</docs-index>` | Exact full-line managed-region delimiters           |
-| `format`  | no       | `flat`                           | `flat` or an object containing `template`           |
+| `format`  | no       | built-in renderer                | Object containing a Liquid `template` override      |
 
 Tags must be non-empty, single-line, and different from each other.
 
@@ -128,12 +128,12 @@ targets:
           - docs/standards/**
 ```
 
-| Field     | Required | Default | Description                                               |
-| --------- | -------- | ------- | --------------------------------------------------------- |
-| `tags`    | yes      | none    | Exact full-line delimiters for this region                |
-| `include` | no       | all     | Globs that select from the top-level discovered catalog   |
-| `exclude` | no       | `[]`    | Globs removed from this region after its include filter   |
-| `format`  | no       | `flat`  | `flat` or an object containing a Liquid `template` string |
+| Field     | Required | Default  | Description                                             |
+| --------- | -------- | -------- | ------------------------------------------------------- |
+| `tags`    | yes      | none     | Exact full-line delimiters for this region              |
+| `include` | no       | all      | Globs that select from the top-level discovered catalog |
+| `exclude` | no       | `[]`     | Globs removed from this region after its include filter |
+| `format`  | no       | built-in | Object containing a Liquid `template` override          |
 
 Filters cascade from configuration to target to region. Includes are ORed within one level and ANDed across levels; excludes accumulate and always win. Every target and region filter is optional, and each accepts one glob or an array. Lower levels only narrow the top-level discovered catalog; they do not discover additional files. Tag lines must be unique across a target's regions. Nested, crossing, duplicate, missing, or reversed markers are rejected before Almanac writes or stages the target.
 
