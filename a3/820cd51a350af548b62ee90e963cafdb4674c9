@@ -1,0 +1,19 @@
+AGENTS.md
+  s_de7d1e5ea81864::t_74da83b6109121 23-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3820cd51a350af548b62ee90e963cafdb4674c9",
+  "prompts": {},
+  "sessions": {
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
