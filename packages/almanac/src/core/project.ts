@@ -70,8 +70,6 @@ interface ManagedAlias extends TargetChange {
   readonly absolutePath: string
 }
 
-const compatibilityAliasNames = ['CLAUDE.md', 'GEMINI.md'] as const
-
 /**
  * Creates the project writer shared by sync, check, and init.
  *
@@ -112,7 +110,7 @@ export function createProject(options: {
       return ok(targets.value.map(({ path }) => path))
     },
     link: async (syncOptions) => {
-      const aliases = await discoverManagedAliases(options.git, options.paths)
+      const aliases = await discoverManagedAliases(options.git, options.paths, options.config.links)
       if (!aliases.ok) {
         return aliases
       }
@@ -127,7 +125,7 @@ export function createProject(options: {
       if (!generated.ok) {
         return generated
       }
-      const aliases = await discoverManagedAliases(options.git, options.paths)
+      const aliases = await discoverManagedAliases(options.git, options.paths, options.config.links)
       if (!aliases.ok) {
         return aliases
       }
@@ -320,6 +318,7 @@ async function writeGeneratedTargets(
 async function discoverManagedAliases(
   git: GitClient,
   paths: RepoPathResolver,
+  aliasNames: readonly string[],
 ): Promise<Result<readonly ManagedAlias[]>> {
   const discovered = await git.run([
     'ls-files',
@@ -335,7 +334,9 @@ async function discoverManagedAliases(
     return discovered
   }
   const agentPaths = [...new Set(discovered.value.stdout.split('\0').filter(Boolean))].sort()
-  const analyzed = await Promise.all(agentPaths.map((path) => analyzeManagedAliases(paths, path)))
+  const analyzed = await Promise.all(
+    agentPaths.map((path) => analyzeManagedAliases(paths, path, aliasNames)),
+  )
   const aliases = collectResults(analyzed)
   if (!aliases.ok) {
     return aliases
@@ -346,6 +347,7 @@ async function discoverManagedAliases(
 async function analyzeManagedAliases(
   paths: RepoPathResolver,
   agentPath: string,
+  aliasNames: readonly string[],
 ): Promise<Result<readonly ManagedAlias[]>> {
   const source = await paths.resolve(agentPath)
   if (!source.ok) {
@@ -360,7 +362,7 @@ async function analyzeManagedAliases(
   }
 
   const analyzed = await Promise.all(
-    compatibilityAliasNames.map((aliasName) => analyzeManagedAlias(paths, agentPath, aliasName)),
+    aliasNames.map((aliasName) => analyzeManagedAlias(paths, agentPath, aliasName)),
   )
   return collectResults(analyzed)
 }

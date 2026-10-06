@@ -3,6 +3,24 @@ import { describe, expect, it } from 'vitest'
 import { almanacConfigSchema } from './schema.js'
 
 describe('almanacConfigSchema', () => {
+  it('defaults to Claude and Gemini compatibility links', () => {
+    expect(almanacConfigSchema.parse({}).links).toEqual(['CLAUDE.md', 'GEMINI.md'])
+  })
+
+  it('normalizes provider and custom links', () => {
+    expect(almanacConfigSchema.parse({ links: ['claude', 'gemini', 'MY_AGENT.md'] }).links).toEqual(
+      ['CLAUDE.md', 'GEMINI.md', 'MY_AGENT.md'],
+    )
+    expect(almanacConfigSchema.parse({ links: 'claude' }).links).toEqual(['CLAUDE.md'])
+    expect(almanacConfigSchema.parse({ links: [] }).links).toEqual([])
+  })
+
+  it('rejects unsafe and duplicate links', () => {
+    expect(almanacConfigSchema.safeParse({ links: ['claude', 'CLAUDE.md'] }).success).toBeFalsy()
+    expect(almanacConfigSchema.safeParse({ links: 'AGENTS.md' }).success).toBeFalsy()
+    expect(almanacConfigSchema.safeParse({ links: '../CLAUDE.md' }).success).toBeFalsy()
+  })
+
   it('rejects Git internals and dot segments', () => {
     expect(almanacConfigSchema.safeParse({ targets: ['.git/config'] }).success).toBeFalsy()
     expect(almanacConfigSchema.safeParse({ targets: ['./AGENTS.md'] }).success).toBeFalsy()

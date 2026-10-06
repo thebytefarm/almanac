@@ -41,6 +41,19 @@ echo existing
     await expect(access(join(fixture.path, '.git/hooks/pre-commit'))).rejects.toThrow()
   })
 
+  it('creates only configured provider links', async () => {
+    const fixture = await setup({
+      'almanac.yaml': 'links: gemini\n',
+      'docs/start.md': '# Start Here\n\nRead this first.\n',
+    })
+
+    const result = await invoke('init', '--no-hooks')
+
+    expect(result.error).toBeUndefined()
+    expect(await readlink(join(fixture.path, 'GEMINI.md'))).toBe('AGENTS.md')
+    await expect(lstat(join(fixture.path, 'CLAUDE.md'))).rejects.toThrow()
+  })
+
   it('initializes and stages an existing tracked target without markers', async () => {
     const fixture = await setup({
       'AGENTS.md': '# Existing rules\n',
