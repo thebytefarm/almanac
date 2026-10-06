@@ -1,0 +1,26 @@
+docs/configuration.md
+  s_de7d1e5ea81864::t_76d4740e496ca8 142
+packages/almanac/README.md
+  s_de7d1e5ea81864::t_76d4740e496ca8 124-126
+  s_de7d1e5ea81864::t_7e60698c5ea536 127
+packages/almanac/src/commands/check.ts
+  s_de7d1e5ea81864::t_76d4740e496ca8 11
+docs/cli.md
+  s_de7d1e5ea81864::t_76d4740e496ca8 52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d92e9979ce55feeb7dfadeff3a1903913e9e847a",
+  "prompts": {},
+  "sessions": {
+    "s_de7d1e5ea81864": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_eee0df8f1ffemNlmw9EGWrkuh0",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Zac Rosenbauer <me@zrosenbauer.com>"
+    }
+  }
+}
