@@ -35,3 +35,14 @@ jobs:
       auto-merge: ${{ inputs.auto-merge }}
     secrets:
       CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+
+  diagnostics:
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Inspect non-sensitive dispatch context
+        run: printf '%s\n' "$EVENT_NAME" "$REPO_OWNER" "$REPO_PRIVATE"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_PRIVATE: ${{ github.event.repository.private }}
