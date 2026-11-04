@@ -50,9 +50,9 @@
     "test:unit": "vitest run --project unit"
   },
   "dependencies": {
-    "liquidjs": "^10.29.0",
+    "liquidjs": "^10.30.1",
     "maltty": "1.0.0-rc.4",
-    "massaman": "^0.5.1",
+    "massaman": "^0.5.5",
     "yaml": "^2.9.1",
     "zod": "4.6.7"
   },
