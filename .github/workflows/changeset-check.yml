@@ -10,7 +10,7 @@ permissions:
 jobs:
   changeset-check:
     name: Changeset Check
-    if: github.head_ref != 'changeset-release/main'
+    if: github.head_ref != 'changeset-release/main' && github.event.pull_request.user.login != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
