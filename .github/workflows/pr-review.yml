@@ -27,20 +27,11 @@ jobs:
       checks: read
       pull-requests: read
       id-token: write
-    uses: thebytefarm/.github/.github/workflows/review-probe.yml@27e82be2cfd5e31a060ced9c3a6cc1131b77e77b
+    uses: thebytefarm/.github/.github/workflows/pull-review.yml@1902ce1f0faa611dfe123d2c651d78bea58e9bb1
     with:
-      engine-ref: 27e82be2cfd5e31a060ced9c3a6cc1131b77e77b
+      engine-ref: 1902ce1f0faa611dfe123d2c651d78bea58e9bb1
       pr-number: ${{ fromJSON(github.event.inputs.pr-number) }}
-      publish: ${{ fromJSON(github.event.inputs.publish || 'false') }}
-      auto-merge: ${{ fromJSON(github.event.inputs.auto-merge || 'false') }}
+      publish: ${{ inputs.publish }}
+      auto-merge: ${{ inputs.auto-merge }}
     secrets:
       CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
-
-  diagnostics:
-    runs-on: ubuntu-24.04
-    permissions: {}
-    steps:
-      - run: printf '%s\n' "$TYPED" "$RAW"
-        env:
-          TYPED: ${{ toJSON(inputs) }}
-          RAW: ${{ toJSON(github.event.inputs) }}
