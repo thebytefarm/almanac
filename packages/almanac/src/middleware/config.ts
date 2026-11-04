@@ -14,6 +14,10 @@ declare module 'maltty' {
   }
 }
 
+declare module 'maltty/config' {
+  interface ConfigRegistry extends AlmanacConfig {}
+}
+
 /**
  * Enforces Almanac's static config policy and loads validated project config.
  *

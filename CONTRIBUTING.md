@@ -5,7 +5,7 @@ Almanac accepts focused bug fixes, documentation improvements, and features that
 ## Prerequisites
 
 - Node.js 26 or newer
-- pnpm 12.3.4 through Corepack
+- pnpm through Corepack (the exact version is pinned in `package.json`)
 - Git
 
 ## Setup

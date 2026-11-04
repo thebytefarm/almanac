@@ -29,6 +29,13 @@
   "imports": {
     "#*": "./src/*"
   },
+  "exports": {
+    "./sdk": {
+      "types": "./dist/sdk.d.mts",
+      "import": "./dist/sdk.mjs"
+    },
+    "./package.json": "./package.json"
+  },
   "publishConfig": {
     "access": "public"
   },

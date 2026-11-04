@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsdown'
 
 /**
- * Production CLI bundle and maltty command entry points.
+ * Production CLI, command entry points, and typed SDK bundle.
  */
 export default defineConfig({
   clean: true,
@@ -10,7 +10,7 @@ export default defineConfig({
     neverBundle: [/^react(?:\/|$)/, 'ink', 'giget', 'jiti', 'chokidar'],
     onlyBundle: false,
   },
-  dts: false,
-  entry: ['src/index.ts', 'src/commands/**/!(*.test).ts'],
+  dts: true,
+  entry: ['src/index.ts', 'src/sdk.ts', 'src/commands/**/!(*.test).ts'],
   format: ['esm'],
 })

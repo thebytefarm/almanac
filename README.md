@@ -75,6 +75,24 @@ pnpm exec almanac check  # fail when an index is stale
 
 Use `check` in CI when hooks are not installed. Configuration is optional; indexing commands accept repeatable `--include`, `--exclude`, and `--target` overrides.
 
+## SDK
+
+Use Almanac inside another Node.js tool without an Almanac config file:
+
+```ts
+import { createAlmanac } from 'almanac-md/sdk'
+
+const almanac = createAlmanac({
+  cwd: repoPath,
+  config: { include: ['docs/**/*.md'], links: [], targets: ['AGENTS.md'] },
+})
+
+await almanac.initialize()
+await almanac.sync()
+```
+
+Pass your tool's configuration directly. Methods return plain values and throw/reject on failure. Staging and hook installation are opt-in; the SDK never loads repository config files. See the [SDK reference](packages/almanac/README.md#sdk) for methods and write-safety limits.
+
 ## Commands
 
 | Command                 | Purpose                                                             |

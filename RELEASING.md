@@ -1,6 +1,6 @@
 # Releasing Almanac
 
-Almanac uses Changesets to version `almanac-md`, maintain its changelog, create Git tags, and publish to npm. Releases exist only on npm; the workflow does not create GitHub Releases.
+Almanac uses Changesets to version `almanac-md`, maintain its changelog, create Git tags and GitHub Releases, and publish to npm.
 
 ## Normal releases
 
@@ -27,4 +27,4 @@ npm requires a package to exist before its trusted publisher can be configured. 
 7. Set the GitHub Actions repository variable `NPM_TRUSTED_PUBLISHING` to `true`.
 8. Require two-factor authentication and disallow token-based publishing for the package.
 
-After bootstrap, `.github/workflows/release.yml` owns npm publishing and pushes the matching Git tag. It does not create a GitHub Release. Never add an npm token to the repository or GitHub Actions.
+After bootstrap, `.github/workflows/release.yml` owns npm publishing, pushes the matching Git tag, and creates the GitHub Release. Never add an npm token to the repository or GitHub Actions.
