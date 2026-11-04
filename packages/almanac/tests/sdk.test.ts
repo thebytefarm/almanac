@@ -186,6 +186,38 @@ describe('published SDK', () => {
     expect(await fixture.git('show', ':CLAUDE.md')).toBe('AGENTS.md')
   })
 
+  it.each(['link', 'sync'] as const)(
+    'preserves no-op behavior for an unchanged ignored alias during %s',
+    async (operation) => {
+      const fixture = await setup({ ...files, '.gitignore': 'CLAUDE.md\n' })
+      await symlink('AGENTS.md', join(fixture.path, 'CLAUDE.md'))
+      const almanac = createAlmanac({
+        config: { include: 'manual/**/*.md', links: ['claude'] },
+        cwd: fixture.path,
+      })
+      await almanac.index()
+      await fixture.commit('current index and ignored compatibility link')
+
+      await almanac[operation]({ stage: true })
+
+      expect(await fixture.git('diff', '--cached', '--name-only')).toBe('')
+      expect(await readlink(join(fixture.path, 'CLAUDE.md'))).toBe('AGENTS.md')
+    },
+  )
+
+  it('stages tracked aliases even when their paths match ignore rules', async () => {
+    const fixture = await setup({ ...files, 'CLAUDE.md': '# Previously tracked file\n' })
+    await fixture.commit('tracked compatibility path')
+    await fixture.write('.gitignore', 'CLAUDE.md\n')
+    await rm(join(fixture.path, 'CLAUDE.md'))
+    await symlink('AGENTS.md', join(fixture.path, 'CLAUDE.md'))
+    const almanac = createAlmanac({ config: { links: ['claude'] }, cwd: fixture.path })
+
+    await almanac.link({ stage: true })
+
+    expect(await fixture.git('show', ':CLAUDE.md')).toBe('AGENTS.md')
+  })
+
   it('rejects conflicting links as Errors before updating targets', async () => {
     const fixture = await setup({ ...files, 'CLAUDE.md': '# Preserve me\n' })
     const almanac = createAlmanac({

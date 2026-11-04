@@ -417,10 +417,18 @@ async function stageManagedAliases(
   git: GitClient,
   aliases: readonly ManagedAlias[],
 ): Promise<Result<undefined>> {
-  if (aliases.length === 0) {
+  const stageable = await selectStageableChanges(git, aliases)
+  if (!stageable.ok) {
+    return stageable
+  }
+  if (stageable.value.length === 0) {
     return ok(undefined)
   }
-  const staged = await git.run(['add', '--', ...aliases.map(({ path }) => `:(literal)${path}`)])
+  const staged = await git.run([
+    'add',
+    '--',
+    ...stageable.value.map(({ path }) => `:(literal)${path}`),
+  ])
   if (!staged.ok) {
     return staged
   }
@@ -428,6 +436,40 @@ async function stageManagedAliases(
 }
 
 async function stageManagedTargets(
+  git: GitClient,
+  targets: readonly GeneratedTarget[],
+): Promise<Result<undefined>> {
+  const stageable = await selectStageableChanges(git, targets)
+  if (!stageable.ok) {
+    return stageable
+  }
+  return stageNextManagedTarget(git, stageable.value)
+}
+
+async function selectStageableChanges<T extends TargetChange>(
+  git: GitClient,
+  changes: readonly T[],
+): Promise<Result<readonly T[]>> {
+  if (changes.length === 0) {
+    return ok([])
+  }
+  const visible = await git.run([
+    'ls-files',
+    '--cached',
+    '--others',
+    '--exclude-standard',
+    '-z',
+    '--',
+    ...changes.map(({ path }) => `:(literal)${path}`),
+  ])
+  if (!visible.ok) {
+    return visible
+  }
+  const paths = new Set(visible.value.stdout.split('\0').filter(Boolean))
+  return ok(changes.filter(({ changed, path }) => changed || paths.has(path)))
+}
+
+async function stageNextManagedTarget(
   git: GitClient,
   targets: readonly GeneratedTarget[],
 ): Promise<Result<undefined>> {
@@ -439,7 +481,7 @@ async function stageManagedTargets(
   if (!staged.ok) {
     return staged
   }
-  return stageManagedTargets(git, remaining)
+  return stageNextManagedTarget(git, remaining)
 }
 
 async function stageManagedTarget(
