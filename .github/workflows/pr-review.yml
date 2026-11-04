@@ -1,21 +1,46 @@
+# Shared review engine: thebytefarm/.github (review/README.md).
 name: Pull review
-on: workflow_dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: Open pull request number
+        required: true
+        type: number
+      publish:
+        description: Publish one review and status rather than only an artifact
+        default: false
+        type: boolean
+      auto-merge:
+        description: Merge approved low-risk non-release PRs after CI passes (requires publish)
+        default: false
+        type: boolean
+
 permissions: {}
+
 jobs:
-  permission-probe:
+  review:
     permissions:
       contents: read
       actions: read
       checks: read
       pull-requests: read
       id-token: write
-    uses: thebytefarm/.github/.github/workflows/review-probe.yml@faf85876985247bdf530be1b0a553b6c36001a93
-  interface-probe:
     uses: thebytefarm/.github/.github/workflows/review-probe.yml@27e82be2cfd5e31a060ced9c3a6cc1131b77e77b
     with:
-      engine-ref: "27e82be2cfd5e31a060ced9c3a6cc1131b77e77b"
-      pr-number: 31
-      publish: false
-      auto-merge: false
+      engine-ref: 27e82be2cfd5e31a060ced9c3a6cc1131b77e77b
+      pr-number: ${{ fromJSON(github.event.inputs.pr-number) }}
+      publish: ${{ fromJSON(github.event.inputs.publish || 'false') }}
+      auto-merge: ${{ fromJSON(github.event.inputs.auto-merge || 'false') }}
     secrets:
       CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
+
+  diagnostics:
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - run: printf '%s\n' "$TYPED" "$RAW"
+        env:
+          TYPED: ${{ toJSON(inputs) }}
+          RAW: ${{ toJSON(github.event.inputs) }}
