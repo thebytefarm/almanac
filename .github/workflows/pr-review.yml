@@ -2,10 +2,20 @@ name: Pull review
 on: workflow_dispatch
 permissions: {}
 jobs:
-  review:
+  permission-probe:
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      pull-requests: read
+      id-token: write
     uses: thebytefarm/.github/.github/workflows/review-probe.yml@faf85876985247bdf530be1b0a553b6c36001a93
-  diagnostics:
-    runs-on: ubuntu-24.04
-    permissions: {}
-    steps:
-      - run: echo 'Ordinary job scheduled; no credentials accessed.'
+  interface-probe:
+    uses: thebytefarm/.github/.github/workflows/review-probe.yml@27e82be2cfd5e31a060ced9c3a6cc1131b77e77b
+    with:
+      engine-ref: "27e82be2cfd5e31a060ced9c3a6cc1131b77e77b"
+      pr-number: 31
+      publish: false
+      auto-merge: false
+    secrets:
+      CODEX_AUTH_JSON: ${{ secrets.CODEX_AUTH_JSON }}
