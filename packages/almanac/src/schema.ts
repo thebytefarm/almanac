@@ -1,6 +1,5 @@
 import { posix } from 'node:path'
 
-import type { ConfigType } from 'maltty/config'
 import { isArray, isPlainObject, isString } from 'massaman/predicate'
 import { z } from 'zod'
 
@@ -199,16 +198,19 @@ const normalizedConfigSchema = z
   })
 
 /**
+ * Configuration accepted before defaults and transforms are applied.
+ */
+export type AlmanacConfigInput = ReadonlyInput<z.input<typeof normalizedConfigSchema>>
+
+type ReadonlyInput<T> = { readonly [Key in keyof T]: ReadonlyInput<T[Key]> }
+
+/**
  * Validates Almanac's static project configuration and applies zero-config defaults.
  */
 export const almanacConfigSchema = z
   .unknown()
   .superRefine(addRemovedFormatIssues)
   .pipe(normalizedConfigSchema)
-
-declare module 'maltty/config' {
-  interface ConfigRegistry extends ConfigType<typeof almanacConfigSchema> {}
-}
 
 function isSingleLine(value: string): boolean {
   return !value.includes('\n') && !value.includes('\r')

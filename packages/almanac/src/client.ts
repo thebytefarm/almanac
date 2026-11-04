@@ -42,7 +42,9 @@ export interface Almanac {
 export function createAlmanac(options: {
   readonly config: AlmanacConfig
   readonly git: GitClient
+  readonly stage?: boolean
 }): Almanac {
+  const stage = options.stage ?? true
   const paths = createRepoPathResolver(options.git.root)
   const createConfiguredProject = (overrides: IndexOverrides = {}) => {
     const config = resolveConfig(options.config, overrides)
@@ -84,7 +86,7 @@ export function createAlmanac(options: {
       if (!project.ok) {
         return project
       }
-      return project.value.index({ stage: true, write: true })
+      return project.value.index({ stage, write: true })
     },
     initialize: async (initializeOptions) => {
       const project = createConfiguredProject(initializeOptions)
@@ -95,7 +97,7 @@ export function createAlmanac(options: {
       if (!initialized.ok) {
         return initialized
       }
-      const synced = await project.value.sync({ stage: true, write: true })
+      const synced = await project.value.sync({ stage, write: true })
       if (!synced.ok) {
         return synced
       }
@@ -108,13 +110,13 @@ export function createAlmanac(options: {
       }
       return ok(undefined)
     },
-    link: () => defaultProject.link({ stage: true, write: true }),
+    link: () => defaultProject.link({ stage, write: true }),
     sync: async (overrides = {}) => {
       const project = createConfiguredProject(overrides)
       if (!project.ok) {
         return project
       }
-      return project.value.sync({ stage: true, write: true })
+      return project.value.sync({ stage, write: true })
     },
   }
 }

@@ -41,7 +41,11 @@ describe('source architecture', () => {
 
 async function inspectFile(filePath: string): Promise<readonly string[]> {
   const source = await readFile(filePath, 'utf8')
-  const syntaxViolations = FORBIDDEN_SYNTAX.flatMap(({ name, pattern }) =>
+  // Only the public SDK boundary translates internal Results into exceptions.
+  const forbiddenSyntax = FORBIDDEN_SYNTAX.filter(
+    ({ name }) => name !== 'throw statement' || filePath !== path.join('src', 'sdk.ts'),
+  )
+  const syntaxViolations = forbiddenSyntax.flatMap(({ name, pattern }) =>
     [...source.matchAll(pattern)].map(
       (match) => `${filePath}:${getLine(source, match.index)} ${name}`,
     ),
