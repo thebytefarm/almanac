@@ -1,11 +1,13 @@
-import type { ConfigType } from 'maltty/config'
+import type { z } from 'zod'
 
 import type { almanacConfigSchema } from '#schema.js'
 
 /**
  * Resolved, deeply readonly Almanac configuration after defaults and validation.
  */
-export type AlmanacConfig = ConfigType<typeof almanacConfigSchema>
+export type AlmanacConfig = ReadonlyConfig<z.output<typeof almanacConfigSchema>>
+
+type ReadonlyConfig<T> = { readonly [Key in keyof T]: ReadonlyConfig<T[Key]> }
 
 /**
  * Per-command overrides for document discovery and index targets.
