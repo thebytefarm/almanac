@@ -180,7 +180,7 @@ async function applyGeneratedTargets(
     }
   }
   if (options.stage) {
-    return stageManagedTargets(git, changed)
+    return stageManagedTargets(git, targets)
   }
   return ok(undefined)
 }
@@ -198,7 +198,7 @@ async function applyManagedAliases(
     }
   }
   if (options.stage) {
-    return stageManagedAliases(git, changed)
+    return stageManagedAliases(git, aliases)
   }
   return ok(undefined)
 }

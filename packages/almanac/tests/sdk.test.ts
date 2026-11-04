@@ -136,6 +136,33 @@ describe('published SDK', () => {
     expect((await almanac.hooks.status()).status).toBe('not-installed')
   })
 
+  it.each(['index', 'sync'] as const)(
+    'stages existing generated output after an unstaged %s call',
+    async (operation) => {
+      const fixture = await setup()
+      await fixture.commit('initial files')
+      await fixture.write('AGENTS.md', instructions.replace('Human instructions', 'Unstaged edits'))
+      const almanac = createAlmanac({
+        config: { include: 'manual/**/*.md', links: ['claude'] },
+        cwd: fixture.path,
+      })
+
+      await almanac[operation]()
+      expect(await fixture.git('diff', '--cached', '--name-only')).toBe('')
+      const before = await fixture.read('AGENTS.md')
+      await almanac[operation]({ stage: true })
+
+      const staged = await fixture.git('show', ':AGENTS.md')
+      expect(staged).toContain('manual/guide.md: Host-owned documentation.')
+      expect(staged).toContain('# Human instructions')
+      expect(staged).not.toContain('Unstaged edits')
+      expect(await fixture.read('AGENTS.md')).toBe(before)
+      if (operation === 'sync') {
+        expect(await fixture.git('show', ':CLAUDE.md')).toBe('AGENTS.md')
+      }
+    },
+  )
+
   it('creates links without staging unless requested', async () => {
     const fixture = await setup()
     await fixture.commit('initial files')
@@ -144,6 +171,19 @@ describe('published SDK', () => {
     expect(await almanac.link()).toEqual([{ changed: true, path: 'CLAUDE.md' }])
     expect(await fixture.git('diff', '--cached', '--name-only')).toBe('')
     expect((await lstat(join(fixture.path, 'CLAUDE.md'))).isSymbolicLink()).toBe(true)
+  })
+
+  it('stages a compatibility link created by an earlier unstaged call', async () => {
+    const fixture = await setup()
+    await fixture.commit('initial files')
+    const almanac = createAlmanac({ config: { links: ['claude'] }, cwd: fixture.path })
+
+    await almanac.link()
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe('')
+    await almanac.link({ stage: true })
+
+    expect(await fixture.git('diff', '--cached', '--name-only')).toBe('CLAUDE.md')
+    expect(await fixture.git('show', ':CLAUDE.md')).toBe('AGENTS.md')
   })
 
   it('rejects conflicting links as Errors before updating targets', async () => {
